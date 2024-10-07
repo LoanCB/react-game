@@ -1,5 +1,6 @@
 import { Box, Button, Container, Typography } from "@mui/material";
 import { useFormik } from "formik";
+import { Link } from "react-router-dom";
 import KTextField from "../../formik/components/KTextField";
 import registerSchema, { RegisterValues } from "../schemas/register";
 
@@ -95,9 +96,15 @@ const Register = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
+            color="success"
           >
             Créer mon compte
           </Button>
+          <Link to="/login">
+            <Button fullWidth variant="outlined" sx={{ mt: 3, mb: 2 }}>
+              Se connecter
+            </Button>
+          </Link>
         </Box>
       </Box>
     </Container>
