@@ -1,5 +1,6 @@
-import { Box, Button, Container, TextField, Typography } from "@mui/material";
+import { Box, Button, Container, Typography } from "@mui/material";
 import { useFormik } from "formik";
+import KTextField from "../../formik/components/KTextField";
 import loginSchema, { loginValues } from "../schemas/login.schema";
 
 const Login = () => {
@@ -33,31 +34,27 @@ const Login = () => {
           noValidate
           sx={{ mt: 1 }}
         >
-          <TextField
-            margin="normal"
-            fullWidth
-            id="email"
-            label="Adresse mail"
+          <KTextField
+            formik={formik}
             name="email"
-            autoComplete="email"
-            autoFocus
-            value={formik.values.email}
-            onChange={formik.handleChange}
-            error={formik.touched.email && Boolean(formik.errors.email)}
-            helperText={formik.touched.email && formik.errors.email}
+            label="Adresse mail"
+            props={{
+              fullWidth: true,
+              margin: "normal",
+              variant: "outlined",
+              type: "email",
+            }}
           />
-          <TextField
-            margin="normal"
-            fullWidth
+          <KTextField
+            formik={formik}
             name="password"
             label="Mot de passe"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            value={formik.values.password}
-            onChange={formik.handleChange}
-            error={formik.touched.password && Boolean(formik.errors.password)}
-            helperText={formik.touched.password && formik.errors.password}
+            props={{
+              fullWidth: true,
+              margin: "normal",
+              variant: "outlined",
+              type: "password",
+            }}
           />
           <Button
             type="submit"
