@@ -1,7 +1,7 @@
 import { Box, Button, Container, Typography } from "@mui/material";
 import { useFormik } from "formik";
 import KTextField from "../../formik/components/KTextField";
-import loginSchema, { loginValues } from "../schemas/login.schema";
+import loginSchema, { loginValues } from "../schemas/login";
 
 const Login = () => {
   const initialValues = {
@@ -26,7 +26,7 @@ const Login = () => {
         }}
       >
         <Typography component="h1" variant="h5">
-          Log in
+          Se connecter
         </Typography>
         <Box
           component="form"
@@ -62,7 +62,7 @@ const Login = () => {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Sign In
+            Se connecter
           </Button>
         </Box>
       </Box>
