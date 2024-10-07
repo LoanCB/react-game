@@ -4,7 +4,7 @@
     "titleBar.activeBackground": "#35442F",
     "titleBar.activeForeground": "#FAFBFA"
   },
-  "cSpell.words": ["fontsource"],
+  "cSpell.words": ["fontsource", "formik", "Formik"],
   "editor.codeActionsOnSave": {
     "source.organizeImports": "always"
   }

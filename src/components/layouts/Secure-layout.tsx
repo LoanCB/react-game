@@ -9,4 +9,5 @@ const SecureLayout = () => {
     </>
   );
 };
+
 export default SecureLayout;
