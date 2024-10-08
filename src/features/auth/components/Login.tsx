@@ -1,10 +1,12 @@
 import { Box, Button, Container, Typography } from "@mui/material";
 import { useFormik } from "formik";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import KTextField from "../../formik/components/KTextField";
 import loginSchema, { loginValues } from "../schemas/login";
 
 const Login = () => {
+  const { t } = useTranslation();
   const initialValues = {
     email: "",
     password: "",
@@ -27,7 +29,7 @@ const Login = () => {
         }}
       >
         <Typography component="h1" variant="h5">
-          Se connecter
+          {t("auth:login.connect")}
         </Typography>
         <Box
           component="form"
@@ -64,11 +66,11 @@ const Login = () => {
             sx={{ mt: 3, mb: 2 }}
             color="success"
           >
-            Se connecter
+            {t("auth:login.connect")}
           </Button>
           <Link to="/register">
             <Button fullWidth variant="outlined" sx={{ mt: 3, mb: 2 }}>
-              Créer un compte
+              {t("auth:register.create_account")}
             </Button>
           </Link>
         </Box>

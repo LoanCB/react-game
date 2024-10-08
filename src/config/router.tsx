@@ -1,10 +1,10 @@
+import Home from "@src/components/Home";
+import AuthLayout from "@src/components/layouts/Auth";
+import SecureLayout from "@src/components/layouts/Secure";
+import NotFound from "@src/components/Not-found";
+import Login from "@src/features/auth/components/Login";
+import Register from "@src/features/auth/components/Register";
 import { createBrowserRouter } from "react-router-dom";
-import Home from "./components/Home";
-import AuthLayout from "./components/layouts/Auth";
-import SecureLayout from "./components/layouts/Secure";
-import NotFound from "./components/Not-found";
-import Login from "./features/auth/components/Login";
-import Register from "./features/auth/components/Register";
 
 const router = createBrowserRouter([
   {
