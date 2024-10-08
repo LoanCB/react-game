@@ -1,21 +1,52 @@
-import { Box, Button, Container, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Typography,
+} from "@mui/material";
+import { useLoginMutation } from "@src/store/auth-api";
+import { useAppDispatch } from "@src/store/hooks";
+import { openSnackBar } from "@src/store/notificationSlice";
+import { ApiError } from "@src/types/common/error";
 import { useFormik } from "formik";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import KTextField from "../../formik/components/KTextField";
-import loginSchema, { loginValues } from "../schemas/login";
+import loginSchema, { LoginValues } from "../schemas/login";
 
 const Login = () => {
   const { t } = useTranslation();
-  const initialValues = {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const initialValues: LoginValues = {
     email: "",
     password: "",
   };
+  const [login, { isLoading }] = useLoginMutation();
 
-  const formik = useFormik<loginValues>({
+  const handleFormSubmit = async (values: LoginValues) => {
+    const { data, error } = await login(values);
+    if (error) {
+      const errorObject = error as ApiError;
+      dispatch(
+        openSnackBar({
+          message: errorObject.data.errorCode
+            ? t(`auth:errors.${errorObject.data.errorCode}`)
+            : errorObject.data.error,
+          severity: "error",
+        })
+      );
+    } else if (data) {
+      navigate("/");
+    }
+  };
+
+  const formik = useFormik<LoginValues>({
     initialValues,
     validationSchema: loginSchema,
-    onSubmit: (values) => console.log(JSON.stringify(values)),
+    onSubmit: handleFormSubmit,
   });
 
   return (
@@ -65,8 +96,9 @@ const Login = () => {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
             color="success"
+            disabled={isLoading}
           >
-            {t("auth:login.connect")}
+            {isLoading ? <CircularProgress /> : t("auth:login.connect")}
           </Button>
           <Link to="/register">
             <Button fullWidth variant="outlined" sx={{ mt: 3, mb: 2 }}>

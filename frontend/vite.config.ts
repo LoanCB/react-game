@@ -1,12 +1,16 @@
 import react from "@vitejs/plugin-react-swc";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "@src": "/src",
+export default ({ mode }: { mode: string }) => {
+  process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
+
+  return defineConfig({
+    plugins: [react()],
+    resolve: {
+      alias: {
+        "@src": "/src",
+      },
     },
-  },
-});
+  });
+};

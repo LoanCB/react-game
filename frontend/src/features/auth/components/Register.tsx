@@ -1,16 +1,49 @@
-import { Box, Button, Container, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Typography,
+} from "@mui/material";
+import { useRegisterMutation } from "@src/store/auth-api";
+import { useAppDispatch } from "@src/store/hooks";
+import { openSnackBar } from "@src/store/notificationSlice";
 import { useFormik } from "formik";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import KTextField from "../../formik/components/KTextField";
 import registerSchema, { RegisterValues } from "../schemas/register";
 
 const Register = () => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const [register, { isLoading }] = useRegisterMutation();
+
+  const handleFormSubmit = async (values: RegisterValues) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { confirmPassword, ...rest } = values;
+    try {
+      await register(rest);
+      dispatch(
+        openSnackBar({
+          message: t("auth:register.success"),
+          severity: "success",
+        })
+      );
+      navigate("/login");
+    } catch {
+      dispatch(
+        openSnackBar({ message: t("auth:register.error"), severity: "error" })
+      );
+    }
+  };
 
   const initialValues: RegisterValues = {
-    firstName: "",
-    lastName: "",
+    firstname: "",
+    lastname: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -19,7 +52,7 @@ const Register = () => {
   const formik = useFormik<RegisterValues>({
     initialValues,
     validationSchema: registerSchema,
-    onSubmit: (values) => console.log(JSON.stringify(values)),
+    onSubmit: handleFormSubmit,
   });
 
   return (
@@ -35,15 +68,10 @@ const Register = () => {
         <Typography component="h1" variant="h5">
           {t("auth:register.register")}
         </Typography>
-        <Box
-          component="form"
-          onSubmit={formik.handleSubmit}
-          noValidate
-          sx={{ mt: 1 }}
-        >
+        <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1 }}>
           <KTextField
             formik={formik}
-            name="firstName"
+            name="firstname"
             label="Prénom"
             props={{
               fullWidth: true,
@@ -53,8 +81,18 @@ const Register = () => {
           />
           <KTextField
             formik={formik}
-            name="lastName"
+            name="lastname"
             label="Nom"
+            props={{
+              fullWidth: true,
+              margin: "normal",
+              variant: "outlined",
+            }}
+          />
+          <KTextField
+            formik={formik}
+            name="username"
+            label="Surnom"
             props={{
               fullWidth: true,
               margin: "normal",
@@ -104,8 +142,13 @@ const Register = () => {
             {t("auth:register.create_account")}
           </Button>
           <Link to="/login">
-            <Button fullWidth variant="outlined" sx={{ mt: 3, mb: 2 }}>
-              {t("auth:login.connect")}
+            <Button
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={isLoading}
+            >
+              {isLoading ? <CircularProgress /> : t("auth:login.connect")}
             </Button>
           </Link>
         </Box>

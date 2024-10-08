@@ -16,6 +16,7 @@ import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Symbol } from "../common/Symbol";
+import Notification from "../common/notification";
 
 const SecureLayout = () => {
   const { t } = useTranslation();
@@ -149,6 +150,7 @@ const SecureLayout = () => {
           </Toolbar>
         </Container>
       </AppBar>
+      <Notification />
       <Outlet />
     </>
   );

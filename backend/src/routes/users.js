@@ -7,7 +7,14 @@ import {
 export function usersRoutes(app, blacklistedTokens) {
   app
     .post("/login", async (request, reply) => {
-      reply.send(await loginUser(request.body, app));
+      const user = await loginUser(request.body, app);
+      if (user.error) {
+        reply
+          .status(user.status)
+          .send({ error: user.error, errorCode: user.errorCode });
+      }
+
+      reply.status(201).send({ token: user.token });
     })
     .post(
       "/logout",

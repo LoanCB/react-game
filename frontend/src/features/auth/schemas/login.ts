@@ -1,13 +1,14 @@
+import { stringRequired } from "@src/features/formik/schemas/base";
 import { object, string } from "yup";
 
 const loginSchema = object({
   email: string()
     .email("Adresse mail invalide")
     .required("Adresse mail requise"),
-  password: string().required(),
+  password: stringRequired(),
 });
 
-export interface loginValues {
+export interface LoginValues {
   email: string;
   password: string;
 }
