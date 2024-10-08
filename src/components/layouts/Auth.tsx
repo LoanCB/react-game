@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
+import Logo from "@src/assets/love_letters_logo.jpeg";
 import { Outlet } from "react-router-dom";
-import Logo from "../../assets/love_letters_logo.jpeg";
 
 const AuthLayout = () => {
   return (

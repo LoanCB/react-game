@@ -1,0 +1,7 @@
+{
+  "secure_layout": {
+    "create_game": "Créer une partie",
+    "join_game": "Rejoindre une partie",
+    "logout": "Se déconnecter"
+  }
+}
