@@ -5,6 +5,7 @@ import NotFound from "@src/components/Not-found";
 import Login from "@src/features/auth/components/Login";
 import Register from "@src/features/auth/components/Register";
 import Verify from "@src/features/auth/components/Verify";
+import Game from "@src/features/game/components/Game";
 import { createBrowserRouter } from "react-router-dom";
 
 const router = createBrowserRouter([
@@ -16,6 +17,10 @@ const router = createBrowserRouter([
       {
         path: "",
         element: <Home />,
+      },
+      {
+        path: "game/:gameId",
+        element: <Game />,
       },
     ],
   },
