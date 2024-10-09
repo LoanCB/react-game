@@ -12,8 +12,9 @@ import {
   Typography,
 } from "@mui/material";
 import Logo from "@src/assets/love_letters_logo.jpeg";
-import { useAppSelector } from "@src/store/hooks";
+import { useAppDispatch, useAppSelector } from "@src/store/hooks";
 import { RootState } from "@src/store/store";
+import { removeUser } from "@src/store/userSlice";
 import { User } from "@src/types/user/user";
 import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,12 +25,17 @@ import Notification from "../common/notification";
 const SecureLayout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const user: User | null = useAppSelector((state: RootState) => state.user);
 
+  const handleLogout = () => {
+    dispatch(removeUser());
+    navigate("/login");
+  };
   const pages = [
     {
       text: t("common:secure_layout.create_game"),
@@ -43,7 +49,7 @@ const SecureLayout = () => {
   const settings = [
     {
       text: t("common:secure_layout.logout"),
-      handleClick: () => navigate("/login"),
+      handleClick: handleLogout,
     },
   ];
 
