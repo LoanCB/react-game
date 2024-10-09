@@ -9,10 +9,3 @@ export interface LoginToken {
   token: string;
   user: Omit<User, "token">;
 }
-
-export interface LoginError {
-  data: {
-    error: string;
-    errorCode?: string;
-  };
-}

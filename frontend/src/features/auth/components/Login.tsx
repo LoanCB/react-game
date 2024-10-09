@@ -9,7 +9,7 @@ import { useLoginMutation } from "@src/store/auth-api";
 import { useAppDispatch } from "@src/store/hooks";
 import { openSnackBar } from "@src/store/notificationSlice";
 import { setUser } from "@src/store/userSlice";
-import { LoginError } from "@src/types/auth/login";
+import ApiError from "@src/types/common/api-error";
 import { useFormik } from "formik";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -30,7 +30,7 @@ const Login = () => {
   const handleFormSubmit = async (values: LoginValues) => {
     const { data, error } = await login(values);
     if (error) {
-      const errorObject = error as LoginError;
+      const errorObject = error as ApiError;
       dispatch(
         openSnackBar({
           message: errorObject.data.errorCode
@@ -104,7 +104,11 @@ const Login = () => {
           </Button>
           <Link to="/register">
             <Button fullWidth variant="outlined" sx={{ mt: 3, mb: 2 }}>
-              {t("auth:register.create_account")}
+              {isLoading ? (
+                <CircularProgress />
+              ) : (
+                t("auth:register.create_account")
+              )}
             </Button>
           </Link>
         </Box>

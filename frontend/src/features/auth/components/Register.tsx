@@ -139,7 +139,11 @@ const Register = () => {
             sx={{ mt: 3, mb: 2 }}
             color="success"
           >
-            {t("auth:register.create_account")}
+            {isLoading ? (
+              <CircularProgress />
+            ) : (
+              t("auth:register.create_account")
+            )}
           </Button>
           <Link to="/login">
             <Button

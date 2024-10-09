@@ -1,3 +1,4 @@
+import nodemailer from "nodemailer";
 import { Op } from "sequelize";
 import User from "../models/users.js";
 
@@ -10,6 +11,16 @@ async function generateID(id) {
   }
   return id;
 }
+
+const transporter = nodemailer.createTransport({
+  host: process.env.MAIL_HOST,
+  port: process.env.MAIL_PORT,
+  secure: false, // true for port 465, false for other ports
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASSWORD,
+  },
+});
 
 export async function getUsers() {
   return await User.findAll();
@@ -85,7 +96,62 @@ export async function registerUser(userDatas, bcrypt) {
     email,
     password: hashedPassword,
   };
+
+  // Send mail
+  try {
+    const from = "Loan Courchinoux-Billonnet <loanbillonnet@gmail.com>";
+    const subject = "Confirmation d'inscription";
+    const url = `${process.env.APP_FRONT_URL}/verify?email=${email}&id=${id}`;
+    const html = `<a href="${url}" target="_blank">Activer mon compte</a>`;
+    await transporter.sendMail({ from, to: email, subject, html });
+  } catch (error) {
+    console.error(error);
+  }
+
   return await User.create(user);
+}
+
+export async function verifyUser(userDatas) {
+  if (!userDatas) {
+    return {
+      error: "Aucune donnée n'a été envoyée",
+      errorCode: "INVALID_REQUEST",
+      status: 400,
+    };
+  }
+
+  const { email, id } = userDatas;
+  if (!email || !id) {
+    return {
+      error: "Tous les champs sont obligatoires",
+      errorCode: "INVALID_REQUEST",
+      status: 400,
+    };
+  }
+
+  const user = await User.findOne({
+    where: {
+      email: {
+        [Op.eq]: email,
+      },
+      id: {
+        [Op.eq]: id,
+      },
+    },
+  });
+
+  if (!user) {
+    return {
+      error: "Utilisateur non trouvé",
+      errorCode: "USER_NOT_FOUND",
+      status: 404,
+    };
+  }
+
+  user.verified = true;
+  user.save();
+
+  return {};
 }
 
 export async function loginUser(userDatas, app) {

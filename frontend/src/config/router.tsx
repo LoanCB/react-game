@@ -4,6 +4,7 @@ import SecureLayout from "@src/components/layouts/Secure";
 import NotFound from "@src/components/Not-found";
 import Login from "@src/features/auth/components/Login";
 import Register from "@src/features/auth/components/Register";
+import Verify from "@src/features/auth/components/Verify";
 import { createBrowserRouter } from "react-router-dom";
 
 const router = createBrowserRouter([
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
       {
         path: "/register",
         element: <Register />,
+      },
+      {
+        path: "/verify",
+        element: <Verify />,
       },
     ],
   },

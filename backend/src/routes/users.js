@@ -3,7 +3,9 @@ import {
   getUsers,
   loginUser,
   registerUser,
+  verifyUser,
 } from "../controllers/users.js";
+
 export function usersRoutes(app, blacklistedTokens) {
   app
     .post("/login", async (request, reply) => {
@@ -28,14 +30,28 @@ export function usersRoutes(app, blacklistedTokens) {
         reply.send({ logout: true });
       }
     );
+
   //inscription
   app.post("/register", async (request, reply) => {
     reply.send(await registerUser(request.body, app.bcrypt));
   });
+
+  app.post("/verify", async (request, reply) => {
+    const response = await verifyUser(request.body);
+    if (response.error) {
+      reply
+        .status(response.status)
+        .send({ error: response.error, errorCode: response.errorCode });
+    }
+
+    reply.status(201).send({ success: true });
+  });
+
   //récupération de la liste des utilisateurs
   app.get("/users", async (request, reply) => {
     reply.send(await getUsers());
   });
+
   //récupération d'un utilisateur par son id
   app.get("/users/:id", async (request, reply) => {
     reply.send(await getUserById(request.params.id));

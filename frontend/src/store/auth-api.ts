@@ -1,5 +1,9 @@
 import { LoginCredentials, LoginToken } from "./../types/auth/login";
-import { CreatedUser, RegisterCredentials } from "./../types/auth/register";
+import {
+  CreatedUser,
+  RegisterCredentials,
+  VerifyCredentials,
+} from "./../types/auth/register";
 import { api } from "./api";
 
 export const authApi = api.injectEndpoints({
@@ -13,7 +17,15 @@ export const authApi = api.injectEndpoints({
     logout: builder.mutation<{ logout: boolean }, void>({
       query: () => ({ url: "/logout", method: "POST" }),
     }),
+    verify: builder.mutation<void, VerifyCredentials>({
+      query: (body) => ({ url: "/verify", method: "POST", body }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation } = authApi;
+export const {
+  useLoginMutation,
+  useRegisterMutation,
+  useLogoutMutation,
+  useVerifyMutation,
+} = authApi;

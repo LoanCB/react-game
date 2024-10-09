@@ -16,6 +16,7 @@
 		"fastify": "^5.0.0",
 		"fastify-bcrypt": "^1.0.1",
 		"mysql2": "^3.11.3",
+		"nodemailer": "^6.9.15",
 		"sequelize": "^6.37.3"
 	},
 	"scripts": {
