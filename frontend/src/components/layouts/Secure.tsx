@@ -12,9 +12,12 @@ import {
   Typography,
 } from "@mui/material";
 import Logo from "@src/assets/love_letters_logo.jpeg";
+import { useAppSelector } from "@src/store/hooks";
+import { RootState } from "@src/store/store";
+import { User } from "@src/types/user/user";
 import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { Symbol } from "../common/Symbol";
 import Notification from "../common/notification";
 
@@ -24,6 +27,8 @@ const SecureLayout = () => {
 
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+
+  const user: User | null = useAppSelector((state: RootState) => state.user);
 
   const pages = [
     {
@@ -57,6 +62,10 @@ const SecureLayout = () => {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <>
@@ -119,7 +128,10 @@ const SecureLayout = () => {
             <Box sx={{ flexGrow: 0 }}>
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar>TMP</Avatar>
+                  <Avatar>
+                    {user!.firstname[0].toUpperCase() +
+                      user!.lastname[0].toUpperCase()}
+                  </Avatar>
                 </IconButton>
               </Tooltip>
               <Menu

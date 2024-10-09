@@ -14,7 +14,7 @@ export function usersRoutes(app, blacklistedTokens) {
           .send({ error: user.error, errorCode: user.errorCode });
       }
 
-      reply.status(201).send({ token: user.token });
+      reply.status(201).send({ token: user.token, user: user.user });
     })
     .post(
       "/logout",

@@ -1,11 +1,11 @@
 export type User = {
-  id: number;
+  id: string;
   username: string;
   firstname: string;
   lastname: string;
   email: string;
+  password: string;
+  bestScrore: number;
   verified: boolean;
-  createdDate: string;
-  updatedDate: string;
   token: string;
 };

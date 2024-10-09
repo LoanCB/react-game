@@ -8,7 +8,8 @@ import {
 import { useLoginMutation } from "@src/store/auth-api";
 import { useAppDispatch } from "@src/store/hooks";
 import { openSnackBar } from "@src/store/notificationSlice";
-import { ApiError } from "@src/types/common/error";
+import { setUser } from "@src/store/userSlice";
+import { LoginError } from "@src/types/auth/login";
 import { useFormik } from "formik";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -29,7 +30,7 @@ const Login = () => {
   const handleFormSubmit = async (values: LoginValues) => {
     const { data, error } = await login(values);
     if (error) {
-      const errorObject = error as ApiError;
+      const errorObject = error as LoginError;
       dispatch(
         openSnackBar({
           message: errorObject.data.errorCode
@@ -39,6 +40,7 @@ const Login = () => {
         })
       );
     } else if (data) {
+      dispatch(setUser({ ...data.user, token: data.token }));
       navigate("/");
     }
   };

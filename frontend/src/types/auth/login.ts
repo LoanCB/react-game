@@ -1,3 +1,5 @@
+import { User } from "../user/user";
+
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -5,6 +7,12 @@ export interface LoginCredentials {
 
 export interface LoginToken {
   token: string;
-  error?: string;
-  errorCode?: string;
+  user: Omit<User, "token">;
+}
+
+export interface LoginError {
+  data: {
+    error: string;
+    errorCode?: string;
+  };
 }
