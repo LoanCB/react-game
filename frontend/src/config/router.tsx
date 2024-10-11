@@ -1,6 +1,7 @@
 import Home from "@src/components/Home";
 import AuthLayout from "@src/components/layouts/Auth";
 import SecureLayout from "@src/components/layouts/Secure";
+import SocketProvider from "@src/components/layouts/Socket";
 import NotFound from "@src/components/Not-found";
 import Login from "@src/features/auth/components/Login";
 import Register from "@src/features/auth/components/Register";
@@ -19,8 +20,14 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "game/:gameId",
-        element: <Game />,
+        path: "/game",
+        element: <SocketProvider />,
+        children: [
+          {
+            path: "/game/:gameId",
+            element: <Game />,
+          },
+        ],
       },
     ],
   },

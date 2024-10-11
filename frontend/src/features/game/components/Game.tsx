@@ -1,12 +1,16 @@
 import { Button } from "@mui/material";
-import { useEffect } from "react";
+import { SocketContext } from "@src/components/layouts/Socket";
+import { useContext, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { io } from "socket.io-client";
-
-const socket = io(import.meta.env.VITE_API_BASE_URL);
 
 const Game = () => {
   const { gameId } = useParams();
+  const context = useContext(SocketContext);
+
+  if (!context) {
+    throw new Error("Cannot get socket context");
+  }
+  const socket = context.socket!;
 
   const handleSendMessage = (message: string) => {
     console.log(message);
@@ -14,7 +18,7 @@ const Game = () => {
   };
 
   useEffect(() => {
-    console.log("demande join");
+    if (!socket) return;
 
     socket.emit("joinGame", gameId);
 
@@ -26,7 +30,7 @@ const Game = () => {
       socket.off("joinGame");
       socket.off("message");
     };
-  }, []);
+  }, [gameId, socket]);
 
   return (
     <>
