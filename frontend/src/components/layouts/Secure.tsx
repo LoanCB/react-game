@@ -39,7 +39,7 @@ const SecureLayout = () => {
   const pages = [
     {
       text: t("common:secure_layout.create_game"),
-      handleClick: () => navigate("/create-room"),
+      handleClick: () => navigate("/game/create"),
     },
     {
       text: t("common:secure_layout.join_game"),

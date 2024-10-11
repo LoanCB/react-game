@@ -17,7 +17,7 @@ i18next
     lng: "fr",
     fallbackLng: "fr",
     returnNull: false,
-    ns: ["common", "auth"],
+    ns: ["common", "auth", "game"],
     defaultNS: "common",
     fallbackNS: "common",
     interpolation: {

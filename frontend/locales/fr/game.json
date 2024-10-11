@@ -1,0 +1,6 @@
+{
+  "create": {
+    "error": "Impossible de créer une nouvelle partie",
+    "success": "Création de la partie avec success"
+  }
+}
