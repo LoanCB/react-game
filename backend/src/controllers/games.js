@@ -4,18 +4,25 @@ export async function createGame(userId) {
   if (!userId) {
     return { error: "L'identifiant du joueur est manquant" };
   }
-  const datas = await Game.create({ creator: userId });
-  console.log(datas.dataValues.id);
-  return { gameId: datas.dataValues.id };
+  const game = await Game.create({ creatorId: userId });
+
+  // Add the creator as the first player
+  await PlayerGame.create({
+    gameId: game.id,
+    userId: userId,
+    order: 1,
+  });
+
+  return { gameId: game.id };
 }
 
 export async function updateGame(request) {
-  console.log(request.params);
   const userId = request.body.userId;
 
   if (request.params.length < 2) {
     return { error: "Il manque des paramètres" };
   }
+
   const { action, gameId } = request.params;
   if (!userId) {
     return { error: "L'identifiant du joueur est manquant" };
@@ -27,35 +34,50 @@ export async function updateGame(request) {
     return { error: "La partie n'existe pas." };
   }
 
-  if (game.dataValues.state == "finished") {
+  if (game.dataValues.state === GameState.FINISHED) {
     return { error: "Cette partie est déjà terminée !" };
   }
 
   switch (action) {
     case "join":
-      if (game.dataValues.player != null) {
-        return { error: "Il y a déjà 2 joueurs dans cette partie !" };
+      const playerCount = game.players.length;
+      if (playerCount >= 6) {
+        return {
+          error:
+            "Le nombre maximum de joueurs (6) est atteint pour cette partie !",
+        };
       }
-      if (game.dataValues.state != "pending") {
+      if (game.dataValues.state != GameState.PENDING) {
         return { error: "Cette partie n'est plus en attente." };
       }
-      await game.setPlayer2(userId);
+      await PlayerGame.create({
+        gameId: gameId,
+        userId: userId,
+        order: playerCount + 1,
+      });
+      break;
     case "start":
-      //update state
-      game.state = "playing";
+      if (game.players.length < 2) {
+        return {
+          error: "Il faut au moins 2 joueurs pour commencer la partie.",
+        };
+      }
+
+      game.state = GameState.PLAYING;
 
       break;
     case "finish":
-      game.state = "finished";
+      game.state = GameState.FINISHED;
       if (!request.body.score) {
         return { error: "Le score est manquant." };
       }
       game.winnerScore = request.body.score;
-      game.winner = request.body.winner;
+      game.winnerId = request.body.winner;
       break;
     default:
       return { error: "Action inconnue" };
   }
+
   game.save();
   return game;
 }

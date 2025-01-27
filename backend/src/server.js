@@ -40,7 +40,7 @@ await app
     openapi: {
       openapi: "3.0.0",
       info: {
-        title: "Documentation de l'API JDR LOTR",
+        title: "Documentation de l'API Skulls",
         description:
           "API développée pour un exercice avec React avec Fastify et Sequelize",
         version: "0.1.0",
@@ -50,23 +50,23 @@ await app
   .register(fastifySwaggerUi, {
     routePrefix: "/documentation",
     theme: {
-      title: "Docs - JDR LOTR API",
+      title: "Docs - Skulls API",
     },
     uiConfig: {
       docExpansion: "list",
       deepLinking: false,
     },
     uiHooks: {
-      onRequest: function (request, reply, next) {
+      onRequest: function (_request, _reply, next) {
         next();
       },
-      preHandler: function (request, reply, next) {
+      preHandler: function (_request, _reply, next) {
         next();
       },
     },
     staticCSP: true,
     transformStaticCSP: (header) => header,
-    transformSpecification: (swaggerObject, request, reply) => {
+    transformSpecification: (swaggerObject) => {
       return swaggerObject;
     },
     transformSpecificationClone: true,

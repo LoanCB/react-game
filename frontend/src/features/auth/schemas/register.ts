@@ -4,8 +4,8 @@ import { stringRequired } from "../../formik/schemas/base";
 const passwordRules = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
 
 const registerSchema = object({
-  firstname: stringRequired("Prénom"),
-  lastname: stringRequired("Nom"),
+  firstName: stringRequired("Prénom"),
+  lastName: stringRequired("Nom"),
   username: stringRequired(),
   email: stringRequired("Adresse mail").email("Adresse mail invalide"),
   password: stringRequired().matches(passwordRules, {
@@ -19,8 +19,8 @@ const registerSchema = object({
 });
 
 export interface RegisterValues {
-  firstname: string;
-  lastname: string;
+  firstName: string;
+  lastName: string;
   username: string;
   email: string;
   password: string;

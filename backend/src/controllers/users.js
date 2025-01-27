@@ -14,7 +14,7 @@ async function generateID(id) {
 
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
-  port: process.env.MAIL_PORT,
+  port: Number(process.env.MAIL_PORT),
   secure: false, // true for port 465, false for other ports
   auth: {
     user: process.env.MAIL_USER,
@@ -64,8 +64,8 @@ export async function registerUser(userDatas, bcrypt) {
   if (!userDatas) {
     return { error: "Aucune donnée à enregistrer" };
   }
-  const { firstname, lastname, username, email, password } = userDatas;
-  if (!firstname || !lastname || !username || !email || !password) {
+  const { firstName, lastName, username, email, password } = userDatas;
+  if (!firstName || !lastName || !username || !email || !password) {
     return { error: "Tous les champs sont obligatoires" };
   }
   //vérification que l'email n'est pas déjà utilisé
@@ -83,18 +83,19 @@ export async function registerUser(userDatas, bcrypt) {
   }
   //création de l'identifiant
   let id = await generateID(
-    (lastname.substring(0, 3) + firstname.substring(0, 3)).toUpperCase()
+    (lastName.substring(0, 3) + firstName.substring(0, 3)).toUpperCase()
   );
   //hashage du mot de passe
   const hashedPassword = await bcrypt.hash(password);
   //création de l'utilisateur dans la base de données
   const user = {
     id,
-    firstname,
-    lastname,
+    firstName,
+    lastName,
     username,
     email,
     password: hashedPassword,
+    verified: false,
   };
 
   // Send mail
@@ -186,14 +187,10 @@ export async function loginUser(userDatas, app) {
       status: 401,
     };
   }
+
   //récupération de l'utilisateur
-  const user = await User.findOne({
-    where: {
-      email: {
-        [Op.eq]: email,
-      },
-    },
-  });
+  const user = rows[0];
+
   //comparaison des mots de passe
   const match = await app.bcrypt.compare(password, user.password);
   if (!match) {
@@ -203,6 +200,7 @@ export async function loginUser(userDatas, app) {
       status: 400,
     };
   }
+
   // Générer le JWT après une authentification réussie
   const token = app.jwt.sign(
     { id: user.id, username: user.username },

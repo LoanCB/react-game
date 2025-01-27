@@ -135,8 +135,8 @@ const SecureLayout = () => {
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                   <Avatar>
-                    {user!.firstname[0].toUpperCase() +
-                      user!.lastname[0].toUpperCase()}
+                    {user!.firstName[0].toUpperCase() +
+                      user!.lastName[0].toUpperCase()}
                   </Avatar>
                 </IconButton>
               </Tooltip>

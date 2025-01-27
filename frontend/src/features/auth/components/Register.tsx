@@ -41,8 +41,8 @@ const Register = () => {
   };
 
   const initialValues: RegisterValues = {
-    firstname: "",
-    lastname: "",
+    firstName: "",
+    lastName: "",
     username: "",
     email: "",
     password: "",
@@ -71,7 +71,7 @@ const Register = () => {
         <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1 }}>
           <KTextField
             formik={formik}
-            name="firstname"
+            name="firstName"
             label="Prénom"
             props={{
               fullWidth: true,
@@ -81,7 +81,7 @@ const Register = () => {
           />
           <KTextField
             formik={formik}
-            name="lastname"
+            name="lastName"
             label="Nom"
             props={{
               fullWidth: true,
