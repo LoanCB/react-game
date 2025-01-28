@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { EmailParams, MailerSend, Recipient, Sender } from "mailersend";
 import { Op } from "sequelize";
 import User from "../models/users.js";
 
@@ -12,14 +12,8 @@ async function generateID(id) {
   return id;
 }
 
-const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: Number(process.env.MAIL_PORT),
-  secure: false, // true for port 465, false for other ports
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASSWORD,
-  },
+const mailerSend = new MailerSend({
+  apiKey: process.env.MAIL_TOKEN,
 });
 
 export async function getUsers() {
@@ -100,13 +94,26 @@ export async function registerUser(userDatas, bcrypt) {
 
   // Send mail
   try {
-    const from = "Loan Courchinoux-Billonnet <loanbillonnet@gmail.com>";
-    const subject = "Confirmation d'inscription";
+    const sender = new Sender(
+      "no-reply@trial-ynrw7gy7qxkg2k8e.mlsender.net",
+      "Loan Courchinoux-Billonnet"
+    );
+    const recipients = [new Recipient(email, `${firstName} ${lastName}`)];
     const url = `${process.env.APP_FRONT_URL}/verify?email=${email}&id=${id}`;
     const html = `<a href="${url}" target="_blank">Activer mon compte</a>`;
-    await transporter.sendMail({ from, to: email, subject, html });
+    const params = new EmailParams()
+      .setFrom(sender)
+      .setTo(recipients)
+      .setSubject("Confirmation d'inscription")
+      .setHtml(html);
+    await mailerSend.email.send(params);
   } catch (error) {
-    console.error(error);
+    console.log(error);
+    return {
+      error: "Échec de la création du compte : impossible d'envoyer un mail",
+      errorCode: "CANNOT_SEND_MAIL",
+      status: 500,
+    };
   }
 
   return await User.create(user);

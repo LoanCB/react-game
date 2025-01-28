@@ -1,6 +1,5 @@
 import { DataTypes } from "@sequelize/core";
 import { sequelize } from "../bdd.js";
-import PlayerGame from "./playerGame.js";
 import User from "./users.js";
 
 const Game = sequelize.define("game", {
@@ -28,13 +27,34 @@ const Game = sequelize.define("game", {
   },
 });
 
-Game.belongsTo(User, { foreignKey: "creatorId", as: "creatorPlayer" });
-Game.belongsTo(User, { foreignKey: "winnerId", as: "winPlayer" });
-Game.belongsToMany(User, {
-  through: PlayerGame,
-  foreignKey: "gameId",
-  otherKey: "userId",
-  as: "players",
+const GamePlayers = sequelize.define("player_game", {
+  gameId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: Game,
+      key: "id",
+    },
+  },
+  userId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    references: {
+      model: User,
+      key: "id",
+    },
+  },
+  order: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
 });
 
+Game.belongsToMany(User, { through: GamePlayers, as: "players" });
+User.belongsToMany(Game, { through: GamePlayers, as: "games" });
+
+Game.belongsTo(User, { foreignKey: "creator", as: "creatorPlayer" });
+Game.belongsTo(User, { foreignKey: "winner", as: "winPlayer" });
+
 export default Game;
+export { GamePlayers };

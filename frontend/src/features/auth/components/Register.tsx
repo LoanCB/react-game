@@ -25,14 +25,23 @@ const Register = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...rest } = values;
     try {
-      await register(rest);
-      dispatch(
-        openSnackBar({
-          message: t("auth:register.success"),
-          severity: "success",
-        })
-      );
-      navigate("/login");
+      const response = await register(rest);
+      if (response.error) {
+        dispatch(
+          openSnackBar({
+            message: t("auth:register.error"),
+            severity: "error",
+          })
+        );
+      } else {
+        dispatch(
+          openSnackBar({
+            message: t("auth:register.success"),
+            severity: "success",
+          })
+        );
+        navigate("/login");
+      }
     } catch {
       dispatch(
         openSnackBar({ message: t("auth:register.error"), severity: "error" })

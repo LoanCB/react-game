@@ -1,6 +1,5 @@
 import { DataTypes } from "@sequelize/core";
 import { sequelize } from "../bdd.js";
-import PlayerGame from "./playerGame.js";
 
 const User = sequelize.define("user", {
   id: {
@@ -39,13 +38,6 @@ const User = sequelize.define("user", {
     allowNull: false,
     defaultValue: false,
   },
-});
-
-User.belongsToMany(Game, {
-  through: PlayerGame,
-  foreignKey: "userId",
-  otherKey: "gameId",
-  as: "games",
 });
 
 export default User;

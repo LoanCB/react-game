@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import Logo from "@src/assets/love_letters_logo.jpeg";
+import Logo from "@src/assets/logo.webp";
 import { useAppDispatch, useAppSelector } from "@src/store/hooks";
 import { RootState } from "@src/store/store";
 import { removeUser } from "@src/store/userSlice";
