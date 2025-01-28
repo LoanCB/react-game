@@ -11,10 +11,7 @@ export const userSlice = createSlice({
     setUser: (state, action: PayloadAction<User>) => {
       return { ...state, ...action.payload };
     },
-    removeUser: (state) => {
-      state = initialState;
-      return state;
-    },
+    removeUser: () => null,
   },
 });
 

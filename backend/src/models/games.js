@@ -18,12 +18,16 @@ const Game = sequelize.define("game", {
     defaultValue: "pending",
   },
   creatorId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   winnerId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING,
     allowNull: true,
+  },
+  private: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
 });
 

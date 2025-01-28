@@ -1,3 +1,4 @@
+import { IGame } from "./../types/game/game";
 import { api } from "./api";
 
 export const gameApi = api.injectEndpoints({
@@ -5,7 +6,10 @@ export const gameApi = api.injectEndpoints({
     createGame: builder.mutation<{ gameId: number }, string>({
       query: (userId) => ({ url: "/game", body: { userId }, method: "POST" }),
     }),
+    gamesList: builder.query<IGame[], void>({
+      query: () => "/game",
+    }),
   }),
 });
 
-export const { useCreateGameMutation } = gameApi;
+export const { useCreateGameMutation, useGamesListQuery } = gameApi;

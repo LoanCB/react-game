@@ -2,5 +2,16 @@
   "create": {
     "error": "Impossible de créer une nouvelle partie",
     "success": "Création de la partie avec success"
+  },
+  "list": {
+    "error": "Impossible de récupérer la liste des parties",
+    "private": "Privée",
+    "public": "Public",
+    "join": "Rejoindre",
+    "state": {
+      "pending": "En attente de joueur",
+      "playing": "En cours",
+      "finished": "Terminée"
+    }
   }
 }
