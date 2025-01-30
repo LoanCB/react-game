@@ -1,4 +1,4 @@
-import Game, { GamePlayers } from "../models/games.js";
+import Game, { PlayerGame } from "../models/games.js";
 
 export async function getGames() {
   return await Game.findAll({ where: { state: "pending", private: false } });
@@ -11,7 +11,7 @@ export async function createGame(userId) {
   const game = await Game.create({ creatorId: userId });
 
   // Add the creator as the first player
-  await GamePlayers.create({
+  await PlayerGame.create({
     gameId: game.id,
     userId,
     order: 1,
@@ -53,6 +53,10 @@ export async function updateGame(request) {
       }
       if (game.dataValues.state != GameState.PENDING) {
         return { error: "Cette partie n'est plus en attente." };
+      }
+
+      if (game.players.some((player) => player.id === userId)) {
+        return { error: "Vous êtes déjà dans cette partie.", code: 400 };
       }
       await PlayerGame.create({
         gameId: gameId,

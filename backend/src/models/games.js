@@ -8,18 +8,23 @@ const Game = sequelize.define("game", {
     primaryKey: true,
     defaultValue: DataTypes.UUIDV4,
   },
-  winnerScore: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-  },
   state: {
-    type: DataTypes.ENUM("pending", "playing", "finished"),
+    type: DataTypes.ENUM("pending", "playing", "finished", "paused"),
     allowNull: false,
     defaultValue: "pending",
   },
   creatorId: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  currentPlayerId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  currentBet: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
   },
   winnerId: {
     type: DataTypes.STRING,
@@ -31,7 +36,7 @@ const Game = sequelize.define("game", {
   },
 });
 
-const GamePlayers = sequelize.define("player_game", {
+const PlayerGame = sequelize.define("player_game", {
   gameId: {
     type: DataTypes.UUID,
     allowNull: false,
@@ -54,11 +59,11 @@ const GamePlayers = sequelize.define("player_game", {
   },
 });
 
-Game.belongsToMany(User, { through: GamePlayers, as: "players" });
-User.belongsToMany(Game, { through: GamePlayers, as: "games" });
+Game.belongsToMany(User, { through: PlayerGame, as: "players" });
+User.belongsToMany(Game, { through: PlayerGame, as: "games" });
 
 Game.belongsTo(User, { foreignKey: "creator", as: "creatorPlayer" });
 Game.belongsTo(User, { foreignKey: "winner", as: "winPlayer" });
 
 export default Game;
-export { GamePlayers };
+export { PlayerGame };
