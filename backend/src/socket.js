@@ -17,9 +17,8 @@ const socketHandler = (app) => {
           console.log(`User ${userId} joined game: ${gameId}`);
           app.io.to(gameId).emit("playerJoined", { userId, gameId });
 
-          // Fetch and send updated game state
-          const gameState = await gameLogic.getGameState(gameId);
-          app.io.to(gameId).emit("gameStateUpdate", gameState);
+          // Update game state and users
+          await gameLogic.updateConnectedUser(gameId, app);
         } catch (error) {
           console.error(error);
           socket.emit("error", error.message);
@@ -105,17 +104,8 @@ const socketHandler = (app) => {
         // Quitter la room
         socket.leave(gameId);
 
-        // Mettre à jour isActive à false dans PlayerGame
-        await GamePlayers.update(
-          { isActive: false },
-          {
-            where: { gameId, userId },
-          }
-        );
-
-        // Informer les autres joueurs que ce joueur a quitté
-        const gameState = await gameLogic.getGameState(gameId);
-        app.io.to(gameId).emit("gameStateUpdate", gameState);
+        // Update game state and users
+        await gameLogic.updateConnectedUser(gameId, app);
 
         console.log(`User ${userId} left game ${gameId}`);
       });

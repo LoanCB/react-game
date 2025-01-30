@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { sequelize } from "../bdd.js";
 import Disc from "../models/disks.js";
 import Game, { GamePlayers } from "../models/games.js";
@@ -51,6 +52,32 @@ const gameLogic = {
     });
   },
 
+  async updateConnectedUser(gameId, app) {
+    const connectedSockets = app.io.sockets.adapter.rooms.get(gameId);
+    const ids = Array.from(connectedSockets || []).map(
+      (socketId) => app.io.sockets.sockets.get(socketId).userId
+    );
+
+    await GamePlayers.update({ isActive: false }, { where: { gameId } });
+
+    if (ids.length > 0) {
+      await GamePlayers.update(
+        { isActive: true },
+        {
+          where: {
+            gameId,
+            userId: {
+              [Op.in]: ids,
+            },
+          },
+        }
+      );
+    }
+
+    const gameState = await gameLogic.getGameState(gameId);
+    app.io.to(gameId).emit("gameStateUpdate", gameState);
+  },
+
   async startGame(gameId) {
     const game = await Game.findByPk(gameId);
     if (!game || game.state !== "pending") {
@@ -71,6 +98,7 @@ const gameLogic = {
               type: "flower",
               userId: player.userId,
               gameId,
+              position: i + 1,
             },
             { transaction: t }
           );
@@ -80,6 +108,7 @@ const gameLogic = {
             type: "skull",
             userId: player.userId,
             gameId,
+            position: 4,
           },
           { transaction: t }
         );
