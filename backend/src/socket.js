@@ -32,7 +32,7 @@ const socketHandler = (app) => {
           console.log(`Game ${gameId} started by user ${userId}`);
 
           const gameState = await gameLogic.getGameState(gameId);
-          app.io.to(gameId).emit("gameStarted", gameState);
+          app.io.to(gameId).emit("gameStateUpdate", gameState);
         } catch (error) {
           console.error(error);
           socket.emit("error", error.message);
@@ -46,7 +46,7 @@ const socketHandler = (app) => {
           console.log(`User ${userId} placed a ${discType} in game ${gameId}`);
 
           const gameState = await gameLogic.getGameState(gameId);
-          app.io.to(gameId).emit("discPlaced", gameState);
+          app.io.to(gameId).emit("gameStateUpdate", gameState);
         } catch (error) {
           console.error(error);
           socket.emit("error", error.message);
@@ -60,7 +60,7 @@ const socketHandler = (app) => {
           console.log(`User ${userId} bet ${betAmount} in game ${gameId}`);
 
           const gameState = await gameLogic.getGameState(gameId);
-          app.io.to(gameId).emit("betMade", gameState);
+          app.io.to(gameId).emit("gameStateUpdate", gameState);
         } catch (error) {
           console.error(error);
           socket.emit("error", error.message);
@@ -76,7 +76,7 @@ const socketHandler = (app) => {
           );
 
           const gameState = await gameLogic.getGameState(gameId);
-          app.io.to(gameId).emit("discRevealed", gameState);
+          app.io.to(gameId).emit("gameStateUpdate", gameState);
         } catch (error) {
           console.error(error);
           socket.emit("error", error.message);
@@ -127,7 +127,7 @@ const socketHandler = (app) => {
             );
             app.io
               .to(GamePlayer.gameId)
-              .emit("playerDisconnected", updatedGameState);
+              .emit("gameStateUpdate", updatedGameState);
           } catch (error) {
             console.error(
               `Error handling disconnection for game ${GamePlayer.gameId}:`,
@@ -147,7 +147,7 @@ const socketHandler = (app) => {
               playerIdToRemove,
               requestingUserId
             );
-            app.io.to(gameId).emit("playerRemoved", updatedGameState);
+            app.io.to(gameId).emit("gameStateUpdate", updatedGameState);
           } catch (error) {
             console.error(error);
             socket.emit("error", error.message);
@@ -162,7 +162,7 @@ const socketHandler = (app) => {
             gameId,
             requestingUserId
           );
-          app.io.to(gameId).emit("gameResumed", updatedGameState);
+          app.io.to(gameId).emit("gameStateUpdate", updatedGameState);
         } catch (error) {
           console.error(error);
           socket.emit("error", error.message);

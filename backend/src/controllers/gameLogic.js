@@ -98,7 +98,6 @@ const gameLogic = {
               type: "flower",
               userId: player.userId,
               gameId,
-              position: i + 1,
             },
             { transaction: t }
           );
@@ -108,7 +107,6 @@ const gameLogic = {
             type: "skull",
             userId: player.userId,
             gameId,
-            position: 4,
           },
           { transaction: t }
         );

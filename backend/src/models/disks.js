@@ -15,7 +15,7 @@ const Disc = sequelize.define("disc", {
   },
   position: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   isRevealed: {
     type: DataTypes.BOOLEAN,
