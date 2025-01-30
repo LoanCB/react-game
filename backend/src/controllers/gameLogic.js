@@ -1,15 +1,20 @@
 import { sequelize } from "../bdd.js";
 import Disc from "../models/disks.js";
-import Game, { PlayerGame } from "../models/games.js";
+import Game, { GamePlayers } from "../models/games.js";
 import User from "../models/users.js";
 
 const gameLogic = {
   async createGame(creatorId) {
+    if (!creatorId) {
+      return { error: "L'identifiant du créateur est manquant", code: 400 };
+    }
+
     const game = await Game.create({
-      creatorId,
+      creator: creatorId,
       state: "pending",
     });
-    await PlayerGame.create({
+
+    await GamePlayers.create({
       gameId: game.id,
       userId: creatorId,
       order: 1,
@@ -22,8 +27,24 @@ const gameLogic = {
     if (!game || game.state !== "pending") {
       throw new Error("Game not available to join");
     }
-    const playerCount = await PlayerGame.count({ where: { gameId } });
-    await PlayerGame.create({
+    const { rows: players, count: playerCount } =
+      await GamePlayers.findAndCountAll({ where: { gameId } });
+    const alreadyPlayer = players.find(
+      (player) => player.dataValues.userId === userId
+    );
+    if (alreadyPlayer) {
+      if (!alreadyPlayer.dataValues.isActive) {
+        await GamePlayers.update(
+          { isActive: true },
+          {
+            where: { gameId, userId },
+          }
+        );
+      }
+      return alreadyPlayer;
+    }
+
+    return await GamePlayers.create({
       gameId,
       userId,
       order: playerCount + 1,
@@ -36,7 +57,7 @@ const gameLogic = {
       throw new Error("Game cannot be started");
     }
 
-    const players = await PlayerGame.findAll({ where: { gameId } });
+    const players = await GamePlayers.findAll({ where: { gameId } });
     if (players.length < 2) {
       throw new Error("Not enough players to start the game");
     }
@@ -94,12 +115,12 @@ const gameLogic = {
     await disc.update({ position: position + 1 });
 
     // Move to next player
-    const nextPlayer = await PlayerGame.findOne({
+    const nextPlayer = await GamePlayers.findOne({
       where: {
         gameId,
         order: {
           [Op.gt]: (
-            await PlayerGame.findOne({ where: { gameId, userId } })
+            await GamePlayers.findOne({ where: { gameId, userId } })
           ).order,
         },
       },
@@ -109,7 +130,7 @@ const gameLogic = {
       currentPlayerId: nextPlayer
         ? nextPlayer.userId
         : (
-            await PlayerGame.findOne({
+            await GamePlayers.findOne({
               where: { gameId },
               order: [["order", "ASC"]],
             })
@@ -161,11 +182,11 @@ const gameLogic = {
       });
       if (revealedCount === game.currentBet) {
         // Player wins the round
-        const playerGame = await PlayerGame.findOne({
+        const GamePlayers = await GamePlayers.findOne({
           where: { gameId, userId },
         });
-        await playerGame.increment("score");
-        if (playerGame.score === 2) {
+        await GamePlayers.increment("score");
+        if (GamePlayers.score === 2) {
           await this.endGame(gameId, userId);
         } else {
           await this.resetRound(gameId);
@@ -180,12 +201,12 @@ const gameLogic = {
       { where: { gameId } }
     );
     const game = await Game.findByPk(gameId);
-    const nextPlayer = await PlayerGame.findOne({
+    const nextPlayer = await GamePlayers.findOne({
       where: {
         gameId,
         order: {
           [Op.gt]: (
-            await PlayerGame.findOne({
+            await GamePlayers.findOne({
               where: { gameId, userId: game.currentPlayerId },
             })
           ).order,
@@ -197,7 +218,7 @@ const gameLogic = {
       currentPlayerId: nextPlayer
         ? nextPlayer.userId
         : (
-            await PlayerGame.findOne({
+            await GamePlayers.findOne({
               where: { gameId },
               order: [["order", "ASC"]],
             })
@@ -244,7 +265,13 @@ const gameLogic = {
       currentBet: game.currentBet,
       winnerId: game.winnerId,
       creator: game.creatorPlayer,
-      players: game.players,
+      players: game.players.map((player) => ({
+        id: player.id,
+        username: player.username,
+        order: player.game_players.order,
+        score: player.game_players.score,
+        isActive: player.game_players.isActive,
+      })),
       discs: discs,
     };
   },
@@ -255,8 +282,10 @@ const gameLogic = {
       throw new Error("Game not found");
     }
 
-    const playerGame = await PlayerGame.findOne({ where: { gameId, userId } });
-    if (!playerGame) {
+    const GamePlayers = await GamePlayers.findOne({
+      where: { gameId, userId },
+    });
+    if (!GamePlayers) {
       throw new Error("Player not found in game");
     }
 
@@ -265,7 +294,7 @@ const gameLogic = {
 
     // If the disconnected player is the creator, assign the next player as creator
     if (game.creatorId === userId) {
-      const nextPlayer = await PlayerGame.findOne({
+      const nextPlayer = await GamePlayers.findOne({
         where: { gameId, userId: { [Op.ne]: userId } },
         order: [["order", "ASC"]],
       });
@@ -275,7 +304,7 @@ const gameLogic = {
     }
 
     // Update player status
-    await playerGame.update({ isActive: false });
+    await GamePlayers.update({ isActive: false });
 
     return this.getGameState(gameId);
   },
@@ -290,11 +319,11 @@ const gameLogic = {
       throw new Error("Only the game creator can remove players");
     }
 
-    await PlayerGame.destroy({ where: { gameId, userId: playerIdToRemove } });
+    await GamePlayers.destroy({ where: { gameId, userId: playerIdToRemove } });
     await Disc.destroy({ where: { gameId, userId: playerIdToRemove } });
 
     // Reorder remaining players
-    const remainingPlayers = await PlayerGame.findAll({
+    const remainingPlayers = await GamePlayers.findAll({
       where: { gameId },
       order: [["order", "ASC"]],
     });
@@ -331,7 +360,7 @@ const gameLogic = {
       throw new Error("Only the game creator can resume the game");
     }
 
-    const activePlayers = await PlayerGame.count({
+    const activePlayers = await GamePlayers.count({
       where: { gameId, isActive: true },
     });
     if (activePlayers < 2) {

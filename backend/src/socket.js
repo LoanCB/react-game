@@ -1,5 +1,5 @@
 import gameLogic from "./controllers/gameLogic.js";
-import { PlayerGame } from "./models/games.js";
+import { GamePlayers } from "./models/games.js";
 
 const socketHandler = (app) => {
   app.ready().then(() => {
@@ -8,6 +8,9 @@ const socketHandler = (app) => {
 
       // Join Game
       socket.on("joinGame", async ({ gameId, userId }) => {
+        socket.gameId = gameId;
+        socket.userId = userId;
+
         try {
           await gameLogic.joinGame(gameId, userId);
           socket.join(gameId);
@@ -18,6 +21,7 @@ const socketHandler = (app) => {
           const gameState = await gameLogic.getGameState(gameId);
           app.io.to(gameId).emit("gameStateUpdate", gameState);
         } catch (error) {
+          console.error(error);
           socket.emit("error", error.message);
         }
       });
@@ -31,6 +35,7 @@ const socketHandler = (app) => {
           const gameState = await gameLogic.getGameState(gameId);
           app.io.to(gameId).emit("gameStarted", gameState);
         } catch (error) {
+          console.error(error);
           socket.emit("error", error.message);
         }
       });
@@ -44,6 +49,7 @@ const socketHandler = (app) => {
           const gameState = await gameLogic.getGameState(gameId);
           app.io.to(gameId).emit("discPlaced", gameState);
         } catch (error) {
+          console.error(error);
           socket.emit("error", error.message);
         }
       });
@@ -57,6 +63,7 @@ const socketHandler = (app) => {
           const gameState = await gameLogic.getGameState(gameId);
           app.io.to(gameId).emit("betMade", gameState);
         } catch (error) {
+          console.error(error);
           socket.emit("error", error.message);
         }
       });
@@ -72,6 +79,7 @@ const socketHandler = (app) => {
           const gameState = await gameLogic.getGameState(gameId);
           app.io.to(gameId).emit("discRevealed", gameState);
         } catch (error) {
+          console.error(error);
           socket.emit("error", error.message);
         }
       });
@@ -85,27 +93,54 @@ const socketHandler = (app) => {
         );
       });
 
+      // Quand un utilisateur quitte une partie
+      socket.on("leaveGame", async () => {
+        const { gameId, userId } = socket;
+
+        if (!gameId || !userId) {
+          console.warn("User tried to leave a game but was not part of one.");
+          return;
+        }
+
+        // Quitter la room
+        socket.leave(gameId);
+
+        // Mettre à jour isActive à false dans PlayerGame
+        await GamePlayers.update(
+          { isActive: false },
+          {
+            where: { gameId, userId },
+          }
+        );
+
+        // Informer les autres joueurs que ce joueur a quitté
+        const gameState = await gameLogic.getGameState(gameId);
+        app.io.to(gameId).emit("gameStateUpdate", gameState);
+
+        console.log(`User ${userId} left game ${gameId}`);
+      });
+
       // Disconnection
       socket.on("disconnect", async () => {
         console.log(`User disconnected : ${socket.id}`);
 
         // Find all games this user is part of
-        const playerGames = await PlayerGame.findAll({
+        const gamePlayers = await GamePlayers.findAll({
           where: { userId: socket.id },
         });
 
-        for (const playerGame of playerGames) {
+        for (const GamePlayer of gamePlayers) {
           try {
             const updatedGameState = await gameLogic.handleDisconnection(
-              playerGame.gameId,
+              GamePlayer.gameId,
               socket.id
             );
             app.io
-              .to(playerGame.gameId)
+              .to(GamePlayer.gameId)
               .emit("playerDisconnected", updatedGameState);
           } catch (error) {
             console.error(
-              `Error handling disconnection for game ${playerGame.gameId}:`,
+              `Error handling disconnection for game ${GamePlayer.gameId}:`,
               error
             );
           }
@@ -124,6 +159,7 @@ const socketHandler = (app) => {
             );
             app.io.to(gameId).emit("playerRemoved", updatedGameState);
           } catch (error) {
+            console.error(error);
             socket.emit("error", error.message);
           }
         }
@@ -138,6 +174,7 @@ const socketHandler = (app) => {
           );
           app.io.to(gameId).emit("gameResumed", updatedGameState);
         } catch (error) {
+          console.error(error);
           socket.emit("error", error.message);
         }
       });

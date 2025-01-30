@@ -12,13 +12,15 @@ import {
   Typography,
 } from "@mui/material";
 import Logo from "@src/assets/logo.webp";
+import { useCreateGameMutation } from "@src/store/game-api";
 import { useAppDispatch, useAppSelector } from "@src/store/hooks";
+import { openSnackBar } from "@src/store/notificationSlice";
 import { RootState } from "@src/store/store";
 import { removeUser } from "@src/store/userSlice";
 import { User } from "@src/types/user/user";
 import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
 import { Symbol } from "../common/Symbol";
 import Notification from "../common/notification";
 
@@ -32,6 +34,23 @@ const SecureLayout = () => {
 
   const user: User | null = useAppSelector((state: RootState) => state.user);
 
+  const [createGame] = useCreateGameMutation();
+  const handleCreateGame = async () => {
+    try {
+      const { id } = await createGame(user!.id).unwrap();
+      dispatch(
+        openSnackBar({ message: t("game:create.success"), severity: "success" })
+      );
+      navigate(`/game/${id}`);
+    } catch (error) {
+      dispatch(
+        openSnackBar({ message: t("game:create.error"), severity: "error" })
+      );
+      console.error(error);
+      navigate("/");
+    }
+  };
+
   const handleLogout = () => {
     dispatch(removeUser());
     navigate("/login");
@@ -39,7 +58,7 @@ const SecureLayout = () => {
   const pages = [
     {
       text: t("common:secure_layout.create_game"),
-      handleClick: () => navigate("/game/create"),
+      handleClick: () => handleCreateGame(),
     },
     {
       text: t("common:secure_layout.join_game"),
@@ -77,11 +96,13 @@ const SecureLayout = () => {
         <AppBar position="static">
           <Container maxWidth="xl">
             <Toolbar disableGutters>
-              <Box
-                component="img"
-                src={Logo}
-                sx={{ width: "100px", height: "auto" }}
-              />
+              <Link to="/">
+                <Box
+                  component="img"
+                  src={Logo}
+                  sx={{ width: "100px", height: "auto" }}
+                />
+              </Link>
 
               <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
                 <IconButton

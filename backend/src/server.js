@@ -22,12 +22,14 @@ try {
   console.error("Impossible de se connecter, erreur suivante :", error);
 }
 
+const CHECK_INTERVAL = process.env.CHECK_GAMES || 10000;
+
 /**
  * API
  * avec fastify
  */
 let blacklistedTokens = [];
-const app = fastify();
+const app = fastify({ logger: true });
 //Ajout du plugin fastify-bcrypt pour le hash du mdp
 await app
   .register(fastifyBcrypt, {
@@ -132,6 +134,8 @@ const start = async () => {
         "Accéder à la documentation sur http://localhost:3000/documentation"
       )
     );
+
+    // setInterval(() => checkGames(app), CHECK_INTERVAL);
   } catch (err) {
     console.log(err);
     process.exit(1);

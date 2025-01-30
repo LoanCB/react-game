@@ -13,10 +13,6 @@ const Game = sequelize.define("game", {
     allowNull: false,
     defaultValue: "pending",
   },
-  creatorId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   currentPlayerId: {
     type: DataTypes.STRING,
     allowNull: true,
@@ -36,7 +32,12 @@ const Game = sequelize.define("game", {
   },
 });
 
-const PlayerGame = sequelize.define("player_game", {
+const GamePlayers = sequelize.define("game_players", {
+  id: {
+    type: DataTypes.UUID,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+  },
   gameId: {
     type: DataTypes.UUID,
     allowNull: false,
@@ -57,13 +58,26 @@ const PlayerGame = sequelize.define("player_game", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  score: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
+  },
 });
 
-Game.belongsToMany(User, { through: PlayerGame, as: "players" });
-User.belongsToMany(Game, { through: PlayerGame, as: "games" });
+Game.belongsToMany(User, { through: GamePlayers, as: "players" });
+User.belongsToMany(Game, { through: GamePlayers, as: "games" });
 
+// Creator
 Game.belongsTo(User, { foreignKey: "creator", as: "creatorPlayer" });
+
+// Winner
 Game.belongsTo(User, { foreignKey: "winner", as: "winPlayer" });
 
 export default Game;
-export { PlayerGame };
+export { GamePlayers };

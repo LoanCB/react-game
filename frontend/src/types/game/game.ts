@@ -6,9 +6,11 @@ export enum GameState {
 
 export interface IGame {
   id: string;
-  winnerScore: number;
   state: GameState;
   creatorId: string;
   winnerId: string;
   private: boolean;
+  currentBet: number;
+  createdAt: string;
+  updatedAt: string;
 }
