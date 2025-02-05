@@ -298,8 +298,8 @@ const gameLogic = {
         order: player.game_players.order,
         score: player.game_players.score,
         isActive: player.game_players.isActive,
+        discs: discs.filter((disc) => disc.userId === player.id),
       })),
-      discs: discs,
     };
   },
 

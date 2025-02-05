@@ -18,13 +18,13 @@ interface GameState {
     order: number;
     score: number;
     isActive: boolean;
-  }>;
-  discs: Array<{
-    id: string;
-    type: "flower" | "skull";
-    position: number | null;
-    isRevealed: boolean;
-    userId: string;
+    discs: Array<{
+      id: string;
+      type: "flower" | "skull";
+      position: number | null;
+      isRevealed: boolean;
+      userId: string;
+    }>;
   }>;
 }
 
@@ -136,14 +136,18 @@ const Game: React.FC = () => {
 
       {gameState.state === "playing" && (
         <Box>
-          {gameState.discs.map((disc, index) => (
-            <Button
-              key={disc.id}
-              onClick={() => handleRevealDisc(index)}
-              disabled={disc.isRevealed}
-            >
-              Reveal Disc {index + 1}
-            </Button>
+          {gameState.players.map((player) => (
+            <Box key={player.id + "disk"}>
+              {player.discs.map((disc, index) => (
+                <Button
+                  key={disc.id}
+                  onClick={() => handleRevealDisc(index)}
+                  disabled={disc.isRevealed}
+                >
+                  Reveal Disc {index + 1}
+                </Button>
+              ))}
+            </Box>
           ))}
         </Box>
       )}
