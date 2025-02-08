@@ -13,10 +13,10 @@ import {
 } from "@mui/material";
 import Logo from "@src/assets/logo.webp";
 import { useCreateGameMutation } from "@src/store/game-api";
-import { useAppDispatch, useAppSelector } from "@src/store/hooks";
+import { useAppDispatch } from "@src/store/hooks";
+import useLocalStorage from "@src/store/local-storage";
 import { openSnackBar } from "@src/store/notificationSlice";
-import { RootState } from "@src/store/store";
-import { removeUser } from "@src/store/userSlice";
+import { removeUser, setUser } from "@src/store/userSlice";
 import { User } from "@src/types/user/user";
 import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,7 +32,7 @@ const SecureLayout = () => {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
-  const user: User | null = useAppSelector((state: RootState) => state.user);
+  const [user, setLocalUser] = useLocalStorage<User | null>("user");
 
   const [createGame] = useCreateGameMutation();
   const handleCreateGame = async () => {
@@ -53,6 +53,7 @@ const SecureLayout = () => {
 
   const handleLogout = () => {
     dispatch(removeUser());
+    setLocalUser(null);
     navigate("/login");
   };
   const pages = [
@@ -91,6 +92,7 @@ const SecureLayout = () => {
   if (!user) {
     return <Navigate to={"/login"} />;
   } else {
+    dispatch(setUser(user));
     return (
       <>
         <AppBar position="static">
@@ -132,7 +134,10 @@ const SecureLayout = () => {
                   sx={{ display: { xs: "block", md: "none" } }}
                 >
                   {pages.map((page, index) => (
-                    <MenuItem key={index} onClick={page.handleClick}>
+                    <MenuItem
+                      key={index + "page mobile"}
+                      onClick={page.handleClick}
+                    >
                       <Typography sx={{ textAlign: "center" }}>
                         {page.text}
                       </Typography>
@@ -143,7 +148,7 @@ const SecureLayout = () => {
               <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
                 {pages.map((page, index) => (
                   <Button
-                    key={index}
+                    key={index + "page desktop"}
                     onClick={page.handleClick}
                     sx={{ my: 2, color: "white", display: "block" }}
                   >
@@ -177,7 +182,10 @@ const SecureLayout = () => {
                   onClose={handleCloseUserMenu}
                 >
                   {settings.map((setting, index) => (
-                    <MenuItem key={index} onClick={setting.handleClick}>
+                    <MenuItem
+                      key={index + "settings"}
+                      onClick={setting.handleClick}
+                    >
                       <Typography sx={{ textAlign: "center" }}>
                         {setting.text}
                       </Typography>
