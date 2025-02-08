@@ -25,7 +25,8 @@ const gameLogic = {
 
   async joinGame(gameId, userId) {
     const game = await Game.findByPk(gameId);
-    if (!game || game.state !== "pending") {
+    if (!game) {
+      //  || game.state !== "pending"
       throw new Error("Game not available to join");
     }
     const { rows: players, count: playerCount } =

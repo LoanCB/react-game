@@ -101,7 +101,9 @@ const Game: React.FC = () => {
   };
 
   const handleLeaveGame = () => {
-    socket.emit("leaveGame");
+    if (socket) {
+      socket.emit("leaveGame");
+    }
   };
 
   if (!gameState) {

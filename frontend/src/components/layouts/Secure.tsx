@@ -25,7 +25,7 @@ import { Symbol } from "../common/Symbol";
 import Notification from "../common/notification";
 
 const SecureLayout = () => {
-  const { t } = useTranslation(["common"]);
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
