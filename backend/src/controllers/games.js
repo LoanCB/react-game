@@ -1,21 +1,37 @@
+import { Op } from "sequelize";
 import Game, { GamePlayers } from "../models/games.js";
 import User from "../models/users.js";
 
-export async function getGames() {
-  return await Game.findAll({
-    where: { state: "pending", private: false },
+export async function getGames(userId) {
+  const games = await Game.findAll({
+    where: {
+      state: {
+        [Op.in]: ["pending", "paused"],
+      },
+    },
     include: [
       {
         model: User,
         as: "players",
         through: {
           model: GamePlayers,
-          attributes: ["isActive"],
+          attributes: ["isActive", "userId"],
         },
         attributes: ["id", "username"],
       },
     ],
   });
+
+  // Filtering results
+  const filteredGames = games.filter((game) => {
+    return (
+      (game.state === "pending" && !game.private) ||
+      (game.state === "paused" &&
+        game.players.some((player) => player.userId === userId))
+    );
+  });
+
+  return filteredGames;
 }
 
 export async function createGame(userId) {

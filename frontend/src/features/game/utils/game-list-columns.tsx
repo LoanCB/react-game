@@ -37,7 +37,7 @@ const GameListColumns = (navigate: NavigateFunction): GridColDef[] => [
     flex: 1,
     renderCell: (params: GridRenderCellParams) => (
       <Button onClick={() => navigate(`/game/${params.row.id}/`)}>
-        {t("game:list.join")}
+        {t(`game:list.${params.row.state === "pending" ? "join" : "resume"}`)}
       </Button>
     ),
   },

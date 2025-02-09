@@ -26,7 +26,7 @@ const gameLogic = {
   async joinGame(gameId, userId) {
     const game = await Game.findByPk(gameId);
     if (!game) {
-      //  || game.state !== "pending"
+      //  || ["pending", "paused"].includes(game.state)
       throw new Error("Game not available to join");
     }
     const { rows: players, count: playerCount } =
@@ -304,6 +304,14 @@ const gameLogic = {
       throw new Error("Game not found");
     }
 
+    // Pause game if a player is inactive
+    if (
+      game.players.some((player) => !player.game_players.isActive) &&
+      game.state === "playing"
+    ) {
+      await game.update({ state: "paused" });
+    }
+
     const discs = await Disc.findAll({
       where: { gameId },
       attributes: ["id", "type", "position", "isRevealed", "userId"],
@@ -423,7 +431,7 @@ const gameLogic = {
       throw new Error("Game not found");
     }
 
-    if (game.creatorId !== requestingUserId) {
+    if (game.creator !== requestingUserId) {
       throw new Error("Only the game creator can resume the game");
     }
 
@@ -435,8 +443,6 @@ const gameLogic = {
     }
 
     await game.update({ state: "playing" });
-
-    return this.getGameState(gameId);
   },
 };
 

@@ -208,7 +208,12 @@ const Game: React.FC = () => {
 
       {gameState.state === "paused" && gameState.creator.id === user.id && (
         <>
-          <Button onClick={handleResumeGame}>Resume Game</Button>
+          <Button
+            onClick={handleResumeGame}
+            disabled={gameState.players.some((player) => !player.isActive)}
+          >
+            Resume Game
+          </Button>
           {gameState.players.map((player) => (
             <Button
               key={player.id}

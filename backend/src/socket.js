@@ -172,11 +172,11 @@ const socketHandler = (app) => {
       // Resume game (only for game creator)
       socket.on("resumeGame", async ({ gameId, requestingUserId }) => {
         try {
-          const updatedGameState = await gameLogic.resumeGame(
-            gameId,
-            requestingUserId
-          );
-          app.io.to(gameId).emit("gameStateUpdate", updatedGameState);
+          await gameLogic.resumeGame(gameId, requestingUserId);
+
+          const gameState = await gameLogic.getGameState(gameId);
+          console.log(gameState.state);
+          app.io.to(gameId).emit("gameStateUpdate", gameState);
         } catch (error) {
           console.error(error);
           socket.emit("error", error.message);

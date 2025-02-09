@@ -8,10 +8,12 @@
     "private": "Privée",
     "public": "Public",
     "join": "Rejoindre",
+    "resume": "Reprendre",
     "state": {
       "pending": "En attente de joueur",
       "playing": "En cours",
-      "finished": "Terminée"
+      "finished": "Terminée",
+      "paused": "En pause"
     }
   }
 }
