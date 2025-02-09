@@ -178,6 +178,29 @@ const gameLogic = {
     await game.update({ currentBet: betAmount });
   },
 
+  async passBet(gameId, userId) {
+    const gamePlayer = await GamePlayers.findOne({
+      where: { gameId, userId },
+      include: [
+        {
+          model: Game,
+          as: "game",
+          attributes: ["state", "currentPlayerId"],
+        },
+      ],
+    });
+
+    if (
+      gamePlayer.game.state !== "playing" ||
+      gamePlayer.game.currentPlayerId !== userId ||
+      gamePlayer.passBet
+    ) {
+      throw new Error("Invalid passing bet");
+    }
+
+    await gamePlayer.update({ passBet: true });
+  },
+
   async revealDisc(gameId, userId, discPosition) {
     const game = await Game.findByPk(gameId);
     if (game.state !== "playing") {
@@ -286,6 +309,19 @@ const gameLogic = {
       attributes: ["id", "type", "position", "isRevealed", "userId"],
     });
 
+    const discCounters = discs.reduce(
+      (acc, cur) => {
+        if (cur.position !== null) {
+          acc.placed++;
+        }
+        if (cur.revealed) {
+          acc.revealed++;
+        }
+        return acc;
+      },
+      { placed: 0, revealed: 0 }
+    );
+
     return {
       id: game.id,
       state: game.state,
@@ -293,12 +329,15 @@ const gameLogic = {
       currentBet: game.currentBet,
       winnerId: game.winnerId,
       creator: game.creatorPlayer,
+      discsPlaced: discCounters.placed,
+      discsRevealed: discCounters.revealed,
       players: game.players.map((player) => ({
         id: player.id,
         username: player.username,
         order: player.game_players.order,
         score: player.game_players.score,
         isActive: player.game_players.isActive,
+        passBet: player.game_players.passBet,
         discs: discs.filter((disc) => disc.userId === player.id),
       })),
     };

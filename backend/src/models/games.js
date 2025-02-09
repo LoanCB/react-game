@@ -68,6 +68,11 @@ const GamePlayers = sequelize.define("game_players", {
     allowNull: false,
     defaultValue: true,
   },
+  passBet: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
 });
 
 Game.belongsToMany(User, { through: GamePlayers, as: "players" });

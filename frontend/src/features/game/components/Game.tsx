@@ -11,6 +11,8 @@ interface GameState {
   currentPlayerId: string | null;
   currentBet: number;
   winnerId: string | null;
+  discsPlaced: number;
+  discsRevealed: number;
   creator: { id: string; username: string };
   players: Array<{
     id: string;
@@ -84,6 +86,10 @@ const Game: React.FC = () => {
     socket.emit("makeBet", { gameId, userId: user.id, betAmount });
   };
 
+  const handlePassBet = () => {
+    socket.emit("passBet", { gameId, userId: user.id });
+  };
+
   const handleRevealDisc = (discPosition: number) => {
     socket.emit("revealDisc", { gameId, userId: user.id, discPosition });
   };
@@ -106,6 +112,30 @@ const Game: React.FC = () => {
     }
   };
 
+  const renderBetButtons = () => {
+    if (!gameState) {
+      return [];
+    }
+    const buttons = [];
+    for (let i = 1; i < gameState?.discsPlaced + 1; i++) {
+      buttons.push(
+        <Button
+          variant="contained"
+          size="small"
+          key={i + "betButton"}
+          onClick={() => handleMakeBet(i)}
+          disabled={
+            i <= gameState.currentBet ||
+            gameState.discsPlaced < gameState.players.length
+          }
+        >
+          {i}
+        </Button>
+      );
+    }
+    return buttons;
+  };
+
   if (!gameState) {
     return <Typography>Loading game...</Typography>;
   }
@@ -124,15 +154,29 @@ const Game: React.FC = () => {
       {gameState.state === "playing" &&
         gameState.currentPlayerId === user.id && (
           <>
-            <Button onClick={() => handlePlaceDisc("flower")}>
-              Place Flower
-            </Button>
-            <Button onClick={() => handlePlaceDisc("skull")}>
-              Place Skull
-            </Button>
-            <Button onClick={() => handleMakeBet(gameState.currentBet + 1)}>
-              Make Bet
-            </Button>
+            <Box>
+              <Button
+                onClick={() => handlePlaceDisc("flower")}
+                disabled={gameState.currentBet > 0}
+              >
+                Place Flower
+              </Button>
+              <Button
+                onClick={() => handlePlaceDisc("skull")}
+                disabled={gameState.currentBet > 0}
+              >
+                Place Skull
+              </Button>
+            </Box>
+            <Box>
+              {renderBetButtons()}
+              <Button
+                onClick={() => handlePassBet()}
+                disabled={gameState.currentBet == 0}
+              >
+                Pass Bet
+              </Button>
+            </Box>
           </>
         )}
 
@@ -140,15 +184,23 @@ const Game: React.FC = () => {
         <Box>
           {gameState.players.map((player) => (
             <Box key={player.id + "disk"}>
-              {player.discs.map((disc, index) => (
-                <Button
-                  key={disc.id}
-                  onClick={() => handleRevealDisc(index)}
-                  disabled={disc.isRevealed}
-                >
-                  Reveal Disc {index + 1}
-                </Button>
-              ))}
+              <Typography>{player.username}</Typography>
+              {player.discs.some((disc) => disc.position) ? (
+                player.discs.map(
+                  (disc, index) =>
+                    disc.position && (
+                      <Button
+                        key={disc.id}
+                        onClick={() => handleRevealDisc(index)}
+                        disabled={disc.isRevealed}
+                      >
+                        Reveal Disc {index + 1}
+                      </Button>
+                    )
+                )
+              ) : (
+                <Typography>No disc placed</Typography>
+              )}
             </Box>
           ))}
         </Box>

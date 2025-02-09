@@ -12,13 +12,14 @@ import {
   Typography,
 } from "@mui/material";
 import Logo from "@src/assets/logo.webp";
+import { setNavigate } from "@src/config/navigation";
 import { useCreateGameMutation } from "@src/store/game-api";
 import { useAppDispatch } from "@src/store/hooks";
 import useLocalStorage from "@src/store/local-storage";
 import { openSnackBar } from "@src/store/notificationSlice";
 import { removeUser, setUser } from "@src/store/userSlice";
 import { User } from "@src/types/user/user";
-import { MouseEvent, useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, Outlet, useNavigate } from "react-router-dom";
 import { Symbol } from "../common/Symbol";
@@ -33,6 +34,10 @@ const SecureLayout = () => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const [user, setLocalUser] = useLocalStorage<User | null>("user");
+
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
 
   const [createGame] = useCreateGameMutation();
   const handleCreateGame = async () => {

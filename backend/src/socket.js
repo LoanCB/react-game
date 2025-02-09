@@ -67,6 +67,20 @@ const socketHandler = (app) => {
         }
       });
 
+      // Pass Bet
+      socket.on("passBet", async ({ gameId, userId }) => {
+        try {
+          await gameLogic.passBet(gameId, userId);
+          console.log(`User ${userId} pass bet in game ${gameId}`);
+
+          const gameState = await gameLogic.getGameState(gameId);
+          app.io.to(gameId).emit("gameStateUpdate", gameState);
+        } catch (error) {
+          console.error(error);
+          socket.emit("error", error.message);
+        }
+      });
+
       // Reveal Disc
       socket.on("revealDisc", async ({ gameId, userId, discPosition }) => {
         try {
