@@ -3,7 +3,7 @@ import { SocketContext } from "@src/components/layouts/Socket";
 import { useAppSelector } from "@src/store/hooks";
 import { RootState } from "@src/store/store";
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 interface GameState {
   id: string;
@@ -255,6 +255,13 @@ const Game: React.FC = () => {
               Remove {player.username}
             </Button>
           ))}
+        </>
+      )}
+
+      {gameState.state === "finished" && (
+        <>
+          <Typography>Partie terminée !</Typography>
+          <Link to={"/game/list"}>Retourner à la liste des parties</Link>
         </>
       )}
 

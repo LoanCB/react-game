@@ -172,17 +172,33 @@ const gameLogic = {
 
   async makeBet(gameId, userId, betAmount) {
     const game = await Game.findByPk(gameId);
+    const discsPlaced = await Disc.count({
+      where: {
+        gameId,
+        position: { [Op.ne]: null },
+      },
+    });
+
     if (
       game.state !== "playing" ||
       game.currentPlayerId !== userId ||
-      betAmount <= game.currentBet
+      betAmount <= game.currentBet ||
+      betAmount > discsPlaced
     ) {
       throw new Error("Invalid bet");
     }
     await game.update({ currentBet: betAmount });
 
-    // Move to next player
-    await this.nextPlayer({ game, gameId, userId });
+    // Pass bet for other players if max amount of discs are chosen
+    if (betAmount === discsPlaced) {
+      await GamePlayers.update(
+        { passBet: true },
+        { where: { gameId, userId: { [Op.ne]: game.currentPlayerId } } }
+      );
+    } else {
+      // Move to next player
+      await this.nextPlayer({ game, gameId, userId });
+    }
   },
 
   async passBet(gameId, userId) {
@@ -244,11 +260,11 @@ const gameLogic = {
       });
       if (revealedCount === game.currentBet) {
         // Player wins the round
-        const GamePlayers = await GamePlayers.findOne({
+        const gamePlayers = await GamePlayers.findOne({
           where: { gameId, userId },
         });
-        await GamePlayers.increment("score");
-        if (GamePlayers.score === 2) {
+        await gamePlayers.increment("score");
+        if (gamePlayers.score === 1) {
           await this.endGame(gameId, userId);
         } else {
           await this.resetRound(gameId);
@@ -258,24 +274,35 @@ const gameLogic = {
   },
 
   async resetRound(gameId) {
-    await Disc.update(
+    // Reset Discs
+    const discs = await Disc.update(
       { isRevealed: false, position: null },
       { where: { gameId } }
     );
     const game = await Game.findByPk(gameId);
-    const nextPlayer = await GamePlayers.findOne({
-      where: {
-        gameId,
-        order: {
-          [Op.gt]: (
-            await GamePlayers.findOne({
-              where: { gameId, userId: game.currentPlayerId },
-            })
-          ).order,
-        },
-      },
-      order: [["order", "ASC"]],
-    });
+
+    // Reset player passing bet
+    await GamePlayers.update({ passBet: false }, { where: { gameId } });
+
+    const currentPlayerDiscs = discs.filter(
+      (disc) => disc.userId === game.currentPlayerId
+    );
+    const nextPlayer =
+      currentPlayerDiscs.length === 0
+        ? await GamePlayers.findOne({
+            where: {
+              gameId,
+              order: {
+                [Op.gt]: (
+                  await GamePlayers.findOne({
+                    where: { gameId, userId: game.currentPlayerId },
+                  })
+                ).order,
+              },
+            },
+            order: [["order", "ASC"]],
+          })
+        : GamePlayers.findOne({ where: { userId: game.currentPlayerId } });
     await game.update({
       currentPlayerId: nextPlayer
         ? nextPlayer.userId
