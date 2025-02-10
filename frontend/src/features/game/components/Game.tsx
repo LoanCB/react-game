@@ -10,6 +10,7 @@ interface GameState {
   state: "pending" | "playing" | "paused" | "finished";
   currentPlayerId: string | null;
   currentBet: number;
+  canRevealOtherDisc: boolean;
   winnerId: string | null;
   discsPlaced: number;
   discsRevealed: number;
@@ -20,12 +21,14 @@ interface GameState {
     order: number;
     score: number;
     isActive: boolean;
+    passBet: boolean;
     discs: Array<{
       id: string;
       type: "flower" | "skull";
       position: number | null;
       isRevealed: boolean;
       userId: string;
+      canReveal: boolean;
     }>;
   }>;
 }
@@ -90,8 +93,8 @@ const Game: React.FC = () => {
     socket.emit("passBet", { gameId, userId: user.id });
   };
 
-  const handleRevealDisc = (discPosition: number) => {
-    socket.emit("revealDisc", { gameId, userId: user.id, discPosition });
+  const handleRevealDisc = (discId: string) => {
+    socket.emit("revealDisc", { gameId, userId: user.id, discId });
   };
 
   const handleRemovePlayer = (playerIdToRemove: string) => {
@@ -126,7 +129,8 @@ const Game: React.FC = () => {
           onClick={() => handleMakeBet(i)}
           disabled={
             i <= gameState.currentBet ||
-            gameState.discsPlaced < gameState.players.length
+            gameState.discsPlaced < gameState.players.length ||
+            playerCanReveal
           }
         >
           {i}
@@ -140,11 +144,31 @@ const Game: React.FC = () => {
     return <Typography>Loading game...</Typography>;
   }
 
+  const haveSkull =
+    gameState.players
+      .find((player) => player.id === user.id)!
+      .discs.find((disc) => disc.type === "skull")!.position === null;
+
+  const haveFlowers = gameState.players
+    .find((player) => player.id === user.id)!
+    .discs.some((disc) => disc.type === "flower" && disc.position === null);
+
+  // Check all players refuse to bet except one (so concerned player can reveal discs)
+  const playerCanReveal =
+    gameState.players.filter((player) => !player.passBet).length === 1;
+
   return (
     <Box>
       <Typography variant="h4">Game: {gameId}</Typography>
       <Typography>Game State: {gameState.state}</Typography>
-      <Typography>Current Player: {gameState.currentPlayerId}</Typography>
+      <Typography>
+        Current Player:{" "}
+        {
+          gameState.players.find(
+            (player) => player.id === gameState.currentPlayerId
+          )!.username
+        }
+      </Typography>
       <Typography>Current Bet: {gameState.currentBet}</Typography>
 
       {gameState.state === "pending" && gameState.creator.id === user.id && (
@@ -157,13 +181,13 @@ const Game: React.FC = () => {
             <Box>
               <Button
                 onClick={() => handlePlaceDisc("flower")}
-                disabled={gameState.currentBet > 0}
+                disabled={gameState.currentBet > 0 || !haveFlowers}
               >
                 Place Flower
               </Button>
               <Button
                 onClick={() => handlePlaceDisc("skull")}
-                disabled={gameState.currentBet > 0}
+                disabled={gameState.currentBet > 0 || !haveSkull}
               >
                 Place Skull
               </Button>
@@ -172,7 +196,7 @@ const Game: React.FC = () => {
               {renderBetButtons()}
               <Button
                 onClick={() => handlePassBet()}
-                disabled={gameState.currentBet == 0}
+                disabled={gameState.currentBet == 0 || playerCanReveal}
               >
                 Pass Bet
               </Button>
@@ -191,10 +215,18 @@ const Game: React.FC = () => {
                     disc.position && (
                       <Button
                         key={disc.id}
-                        onClick={() => handleRevealDisc(index)}
-                        disabled={disc.isRevealed}
+                        onClick={() => handleRevealDisc(disc.id)}
+                        disabled={
+                          !disc.canReveal ||
+                          !playerCanReveal ||
+                          gameState.currentPlayerId !== user.id ||
+                          (!gameState.canRevealOtherDisc &&
+                            gameState.currentPlayerId !== player.id)
+                        }
                       >
-                        Reveal Disc {index + 1}
+                        {disc.isRevealed
+                          ? disc.type
+                          : `Reveal Disc ${index + 1}`}
                       </Button>
                     )
                 )

@@ -82,11 +82,11 @@ const socketHandler = (app) => {
       });
 
       // Reveal Disc
-      socket.on("revealDisc", async ({ gameId, userId, discPosition }) => {
+      socket.on("revealDisc", async ({ gameId, userId, discId }) => {
         try {
-          await gameLogic.revealDisc(gameId, userId, discPosition);
+          await gameLogic.revealDisc(gameId, userId, discId);
           console.log(
-            `User ${userId} revealed disc at position ${discPosition} in game ${gameId}`
+            `User ${userId} revealed disc ${discId} in game ${gameId}`
           );
 
           const gameState = await gameLogic.getGameState(gameId);

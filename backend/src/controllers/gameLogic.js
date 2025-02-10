@@ -124,25 +124,7 @@ const gameLogic = {
     });
   },
 
-  async placeDisc(gameId, userId, discType) {
-    const game = await Game.findByPk(gameId);
-    if (game.state !== "playing" || game.currentPlayerId !== userId) {
-      throw new Error("Invalid move");
-    }
-
-    const disc = await Disc.findOne({
-      where: { gameId, userId, type: discType, position: null },
-    });
-    if (!disc) {
-      throw new Error("No such disc available");
-    }
-
-    const position = await Disc.count({
-      where: { gameId, userId, position: { [Op.not]: null } },
-    });
-    await disc.update({ position: position + 1 });
-
-    // Move to next player
+  async nextPlayer({ game, gameId, userId }) {
     const nextPlayer = await GamePlayers.findOne({
       where: {
         gameId,
@@ -166,6 +148,28 @@ const gameLogic = {
     });
   },
 
+  async placeDisc(gameId, userId, discType) {
+    const game = await Game.findByPk(gameId);
+    if (game.state !== "playing" || game.currentPlayerId !== userId) {
+      throw new Error("Invalid move");
+    }
+
+    const disc = await Disc.findOne({
+      where: { gameId, userId, type: discType, position: null },
+    });
+    if (!disc) {
+      throw new Error("No such disc available");
+    }
+
+    const position = await Disc.count({
+      where: { gameId, userId, position: { [Op.not]: null } },
+    });
+    await disc.update({ position: position + 1 });
+
+    // Move to next player
+    await this.nextPlayer({ game, gameId, userId });
+  },
+
   async makeBet(gameId, userId, betAmount) {
     const game = await Game.findByPk(gameId);
     if (
@@ -176,6 +180,9 @@ const gameLogic = {
       throw new Error("Invalid bet");
     }
     await game.update({ currentBet: betAmount });
+
+    // Move to next player
+    await this.nextPlayer({ game, gameId, userId });
   },
 
   async passBet(gameId, userId) {
@@ -199,16 +206,20 @@ const gameLogic = {
     }
 
     await gamePlayer.update({ passBet: true });
+
+    // Move to next player
+    const game = await Game.findByPk(gameId);
+    await this.nextPlayer({ game, gameId, userId });
   },
 
-  async revealDisc(gameId, userId, discPosition) {
+  async revealDisc(gameId, userId, discId) {
     const game = await Game.findByPk(gameId);
     if (game.state !== "playing") {
       throw new Error("Game is not in playing state");
     }
 
     const disc = await Disc.findOne({
-      where: { gameId, position: discPosition },
+      where: { id: discId },
       include: [{ model: User }],
     });
 
@@ -295,7 +306,7 @@ const gameLogic = {
           model: User,
           as: "players",
           attributes: ["id", "username"],
-          through: { attributes: ["order", "score", "isActive"] },
+          through: { attributes: ["order", "score", "isActive", "passBet"] },
         },
       ],
     });
@@ -312,12 +323,42 @@ const gameLogic = {
       await game.update({ state: "paused" });
     }
 
-    const discs = await Disc.findAll({
+    const rawDiscs = await Disc.findAll({
       where: { gameId },
       attributes: ["id", "type", "position", "isRevealed", "userId"],
+      order: [["position", "DESC"]],
     });
 
-    const discCounters = discs.reduce(
+    const cleanDiscs = (dirtyDiscs) => {
+      const discs = [];
+      for (let i = 0; i < dirtyDiscs.length; i++) {
+        const disc = dirtyDiscs[i];
+        if (disc.position) {
+          if (i === 0) {
+            discs.unshift({
+              ...disc.dataValues,
+              canReveal: !disc.dataValues.isRevealed,
+            });
+          } else {
+            const previousDisc = discs[discs.length - 1];
+
+            if (previousDisc.isRevealed) {
+              discs.unshift({
+                ...disc.dataValues,
+                canReveal: !disc.dataValues.isRevealed,
+              });
+            } else {
+              discs.unshift({ ...disc.dataValues, canReveal: false });
+            }
+          }
+        } else {
+          discs.push({ ...disc.dataValues, canReveal: false });
+        }
+      }
+      return discs;
+    };
+
+    const discCounters = rawDiscs.reduce(
       (acc, cur) => {
         if (cur.position !== null) {
           acc.placed++;
@@ -335,6 +376,9 @@ const gameLogic = {
       state: game.state,
       currentPlayerId: game.currentPlayerId,
       currentBet: game.currentBet,
+      canRevealOtherDisc: !cleanDiscs(
+        rawDiscs.filter((disc) => disc.userId === game.currentPlayerId)
+      ).some((disc) => disc.canReveal),
       winnerId: game.winnerId,
       creator: game.creatorPlayer,
       discsPlaced: discCounters.placed,
@@ -346,7 +390,7 @@ const gameLogic = {
         score: player.game_players.score,
         isActive: player.game_players.isActive,
         passBet: player.game_players.passBet,
-        discs: discs.filter((disc) => disc.userId === player.id),
+        discs: cleanDiscs(rawDiscs.filter((disc) => disc.userId === player.id)),
       })),
     };
   },
