@@ -247,10 +247,25 @@ const gameLogic = {
 
     if (disc.type === "skull") {
       // Player loses a disc
-      await Disc.destroy({
-        where: { gameId, userId: disc.User.id, position: null },
-        limit: 1,
+      const userDiscs = await Disc.findAll({
+        where: { gameId, userId },
+        attributes: ["id"],
       });
+      const toDeleteDisc =
+        userDiscs[Math.floor(Math.random() * userDiscs.length)];
+      await Disc.destroy({ where: { id: toDeleteDisc.id } });
+
+      if (userDiscs.length === 1) {
+        await GamePlayers.update({ eliminated: true }, { where: { userId } });
+        const alivePlayers = await GamePlayers.findAll({
+          where: { gameId, eliminated: false },
+          attributes: ["userId"],
+        });
+        if (alivePlayers.length === 1) {
+          await this.endGame(gameId, alivePlayers[0].userId, "elimination");
+        }
+      }
+
       // Reset the game for next round
       await this.resetRound(gameId);
     } else {
@@ -265,7 +280,7 @@ const gameLogic = {
         });
         await gamePlayers.increment("score");
         if (gamePlayers.score === 1) {
-          await this.endGame(gameId, userId);
+          await this.endGame(gameId, userId, "score");
         } else {
           await this.resetRound(gameId);
         }
@@ -316,9 +331,9 @@ const gameLogic = {
     });
   },
 
-  async endGame(gameId, winnerId) {
+  async endGame(gameId, winnerId, victoryType) {
     const game = await Game.findByPk(gameId);
-    await game.update({ state: "finished", winnerId });
+    await game.update({ state: "finished", winnerId, victoryType });
   },
 
   async getGameState(gameId) {

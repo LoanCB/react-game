@@ -147,7 +147,7 @@ const Game: React.FC = () => {
   const haveSkull =
     gameState.players
       .find((player) => player.id === user.id)!
-      .discs.find((disc) => disc.type === "skull")!.position === null;
+      .discs.find((disc) => disc.type === "skull")?.position === null;
 
   const haveFlowers = gameState.players
     .find((player) => player.id === user.id)!
@@ -161,18 +161,27 @@ const Game: React.FC = () => {
     <Box>
       <Typography variant="h4">Game: {gameId}</Typography>
       <Typography>Game State: {gameState.state}</Typography>
-      <Typography>
-        Current Player:{" "}
-        {
-          gameState.players.find(
-            (player) => player.id === gameState.currentPlayerId
-          )!.username
-        }
-      </Typography>
+      {gameState.state !== "pending" && (
+        <Typography>
+          Current Player:{" "}
+          {
+            gameState.players.find(
+              (player) => player.id === gameState.currentPlayerId
+            )!.username
+          }
+        </Typography>
+      )}
       <Typography>Current Bet: {gameState.currentBet}</Typography>
 
       {gameState.state === "pending" && gameState.creator.id === user.id && (
-        <Button onClick={handleStartGame}>Start Game</Button>
+        <Button
+          onClick={handleStartGame}
+          disabled={
+            gameState.players.filter((player) => player.isActive).length === 1
+          }
+        >
+          Start Game
+        </Button>
       )}
 
       {gameState.state === "playing" &&
@@ -269,7 +278,8 @@ const Game: React.FC = () => {
       {gameState.players.map((player) => (
         <Typography key={player.id}>
           {player.username} - Score: {player.score} -{" "}
-          {player.isActive ? "Active" : "Inactive"}
+          {player.isActive ? "Active" : "Inactive"} ({player.discs.length}{" "}
+          disques)
         </Typography>
       ))}
     </Box>

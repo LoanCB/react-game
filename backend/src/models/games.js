@@ -30,6 +30,11 @@ const Game = sequelize.define("game", {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  victoryType: {
+    type: DataTypes.ENUM("score", "elimination"),
+    allowNull: true,
+    defaultValue: null,
+  },
 });
 
 const GamePlayers = sequelize.define("game_players", {
@@ -69,6 +74,11 @@ const GamePlayers = sequelize.define("game_players", {
     defaultValue: true,
   },
   passBet: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  eliminated: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,
