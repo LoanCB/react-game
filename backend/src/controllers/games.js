@@ -119,3 +119,52 @@ export async function updateGame(request) {
   game.save();
   return game;
 }
+
+export async function getUserGameStats(userId) {
+  try {
+    // Récupérer les parties jouées par l'utilisateur
+    const gamesPlayed = await GamePlayers.findAll({
+      where: { userId },
+      include: [
+        {
+          model: Game,
+          attributes: ["id", "state", "winnerId", "victoryType", "creator"],
+        },
+      ],
+    });
+
+    // Calculer le nombre de parties créées
+    const gamesCreated = await Game.count({
+      where: { creator: userId },
+    });
+
+    // Calculer le nombre de parties gagnées
+    const gamesWon = await Game.count({
+      where: { winnerId: userId },
+    });
+
+    // Calculer le nombre de victoires par type
+    const victoriesByType = await Game.findAll({
+      where: { winnerId: userId },
+      attributes: ["victoryType"],
+    });
+
+    const scoreVictories = victoriesByType.filter(
+      (game) => game.victoryType === "score"
+    ).length;
+    const eliminationVictories = victoriesByType.filter(
+      (game) => game.victoryType === "elimination"
+    ).length;
+
+    return {
+      gamesPlayed: gamesPlayed.length,
+      gamesCreated,
+      gamesWon,
+      scoreVictories,
+      eliminationVictories,
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des statistiques:", error);
+    throw error;
+  }
+}

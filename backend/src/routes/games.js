@@ -1,5 +1,5 @@
 import gameLogic from "../controllers/gameLogic.js";
-import { getGames } from "../controllers/games.js";
+import { getGames, getUserGameStats } from "../controllers/games.js";
 export function gamesRoutes(app) {
   //création d'un jeu
   app.post(
@@ -26,6 +26,15 @@ export function gamesRoutes(app) {
     { preHandler: [app.authenticate] },
     async (_request, reply) => {
       reply.send(await getGames());
+    }
+  );
+
+  // Stats
+  app.get(
+    "/game/stats",
+    { preHandler: [app.authenticate] },
+    async (request, reply) => {
+      reply.send(await getUserGameStats(request.user.id));
     }
   );
 }

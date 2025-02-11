@@ -15,5 +15,12 @@
       "finished": "Terminée",
       "paused": "En pause"
     }
+  },
+  "stats": {
+    "elimination_victory": "Victoires par élimination",
+    "score_victory": "Victoires par score",
+    "created_games": "Parties créées",
+    "played_games": "Parties jouées",
+    "won_games": "Parties gagnées"
   }
 }

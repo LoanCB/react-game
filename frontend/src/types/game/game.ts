@@ -14,3 +14,11 @@ export interface IGame {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface GameStats {
+  gamesPlayed: number;
+  gamesCreated: number;
+  gamesWon: number;
+  scoreVictories: number;
+  eliminationVictories: number;
+}
