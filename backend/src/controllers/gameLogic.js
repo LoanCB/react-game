@@ -266,8 +266,7 @@ const gameLogic = {
         }
       }
 
-      // Reset the game for next round
-      await this.resetRound(gameId);
+      await Game.update({ state: "endRound" }, { where: { id: gameId } });
     } else {
       // Check if bet is completed
       const revealedCount = await Disc.count({
@@ -282,13 +281,27 @@ const gameLogic = {
         if (gamePlayers.score === 1) {
           await this.endGame(gameId, userId, "score");
         } else {
-          await this.resetRound(gameId);
+          await Game.update({ state: "endRound" }, { where: { id: gameId } });
         }
       }
     }
   },
 
-  async resetRound(gameId) {
+  async resetRound(gameId, userId) {
+    await GamePlayers.update(
+      { resetRound: true },
+      { where: { gameId, userId } }
+    );
+
+    const players = await GamePlayers.findAll({
+      where: { gameId },
+      attributes: ["resetRound"],
+    });
+
+    if (players.length === 0 || !players.every((player) => player.resetRound)) {
+      return;
+    }
+
     // Reset Discs
     const discs = await Disc.update(
       { isRevealed: false, position: null },
@@ -296,8 +309,13 @@ const gameLogic = {
     );
     const game = await Game.findByPk(gameId);
 
+    await game.update({ state: "playing" });
+
     // Reset player passing bet
-    await GamePlayers.update({ passBet: false }, { where: { gameId } });
+    await GamePlayers.update(
+      { passBet: false, resetRound: false },
+      { where: { gameId } }
+    );
 
     const currentPlayerDiscs = discs.filter(
       (disc) => disc.userId === game.currentPlayerId
@@ -348,7 +366,9 @@ const gameLogic = {
           model: User,
           as: "players",
           attributes: ["id", "username"],
-          through: { attributes: ["order", "score", "isActive", "passBet"] },
+          through: {
+            attributes: ["order", "score", "isActive", "passBet", "resetRound"],
+          },
         },
       ],
     });
@@ -425,6 +445,9 @@ const gameLogic = {
       creator: game.creatorPlayer,
       discsPlaced: discCounters.placed,
       discsRevealed: discCounters.revealed,
+      playersResetRound: game.players.filter(
+        (player) => player.game_players.resetRound
+      ).length,
       players: game.players.map((player) => ({
         id: player.id,
         username: player.username,
@@ -432,6 +455,7 @@ const gameLogic = {
         score: player.game_players.score,
         isActive: player.game_players.isActive,
         passBet: player.game_players.passBet,
+        resetRound: player.game_players.resetRound,
         discs: cleanDiscs(rawDiscs.filter((disc) => disc.userId === player.id)),
       })),
     };

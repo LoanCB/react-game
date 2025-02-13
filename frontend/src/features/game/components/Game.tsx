@@ -1,19 +1,31 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Chip, Typography } from "@mui/material";
+import { styled } from "@mui/system";
 import { SocketContext } from "@src/components/layouts/Socket";
 import { useAppSelector } from "@src/store/hooks";
 import { RootState } from "@src/store/store";
 import React, { useContext, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import DiscImage from "./DiscImage";
+
+interface Disc {
+  id: string;
+  type: "flower" | "skull";
+  position: number | null;
+  isRevealed: boolean;
+  userId: string;
+  canReveal: boolean;
+}
 
 interface GameState {
   id: string;
-  state: "pending" | "playing" | "paused" | "finished";
+  state: "pending" | "playing" | "endRound" | "paused" | "finished";
   currentPlayerId: string | null;
   currentBet: number;
   canRevealOtherDisc: boolean;
   winnerId: string | null;
   discsPlaced: number;
   discsRevealed: number;
+  playersResetRound: number;
   creator: { id: string; username: string };
   players: Array<{
     id: string;
@@ -22,20 +34,16 @@ interface GameState {
     score: number;
     isActive: boolean;
     passBet: boolean;
-    discs: Array<{
-      id: string;
-      type: "flower" | "skull";
-      position: number | null;
-      isRevealed: boolean;
-      userId: string;
-      canReveal: boolean;
-    }>;
+    resetRound: boolean;
+    discs: Disc[];
   }>;
 }
 
 const Game: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const context = useContext(SocketContext);
+  const navigate = useNavigate();
+
   const [gameState, setGameState] = useState<GameState | null>(null);
   const user = useAppSelector((state: RootState) => state.user);
 
@@ -97,6 +105,10 @@ const Game: React.FC = () => {
     socket.emit("revealDisc", { gameId, userId: user.id, discId });
   };
 
+  const handleResetRound = () => {
+    socket.emit("resetRound", { gameId, userId: user.id });
+  };
+
   const handleRemovePlayer = (playerIdToRemove: string) => {
     socket.emit("removePlayer", {
       gameId,
@@ -132,119 +144,307 @@ const Game: React.FC = () => {
             gameState.discsPlaced < gameState.players.length ||
             playerCanReveal
           }
+          sx={{ flex: "1 1 50px" }}
         >
           {i}
         </Button>
       );
     }
-    return buttons;
+    return (
+      <Box display="flex" gap={1}>
+        {buttons}
+      </Box>
+    );
   };
 
   if (!gameState) {
     return <Typography>Loading game...</Typography>;
   }
 
-  const haveSkull =
-    gameState.players
-      .find((player) => player.id === user.id)!
-      .discs.find((disc) => disc.type === "skull")?.position === null;
-
-  const haveFlowers = gameState.players
-    .find((player) => player.id === user.id)!
-    .discs.some((disc) => disc.type === "flower" && disc.position === null);
+  const currentPlayer = gameState.players.find(
+    (player) => player.id === user.id
+  );
 
   // Check all players refuse to bet except one (so concerned player can reveal discs)
   const playerCanReveal =
     gameState.players.filter((player) => !player.passBet).length === 1;
 
+  const PlayerInfoBox = styled(Box)({
+    position: "absolute",
+    top: "120px", // Adjust as needed
+    right: "16px", // Adjust as needed
+    backgroundColor: "#f0f0f0", // Light gray background
+    padding: "16px",
+    borderRadius: "8px",
+    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)", // Subtle shadow
+    zIndex: 2, // Ensure it's above other content
+    textAlign: "center",
+  });
+
+  const HandArea = styled(Box)({
+    backgroundColor: "#fff",
+    padding: "16px",
+    borderRadius: "8px",
+    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
+    zIndex: 2,
+    display: "flex",
+    justifyContent: "center",
+    gap: "16px",
+  });
+
   return (
     <Box>
-      <Typography variant="h4">Game: {gameId}</Typography>
-      <Typography>Game State: {gameState.state}</Typography>
-      {gameState.state !== "pending" && (
-        <Typography>
-          Current Player:{" "}
-          {
-            gameState.players.find(
-              (player) => player.id === gameState.currentPlayerId
-            )!.username
-          }
-        </Typography>
-      )}
-      <Typography>Current Bet: {gameState.currentBet}</Typography>
-
-      {gameState.state === "pending" && gameState.creator.id === user.id && (
-        <Button
-          onClick={handleStartGame}
-          disabled={
-            gameState.players.filter((player) => player.isActive).length === 1
-          }
+      {gameState.state === "pending" && (
+        <Box
+          sx={{
+            position: "absolute",
+            width: "98%",
+            height: "85%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: "16px",
+            color: "white",
+          }}
         >
-          Start Game
-        </Button>
+          <Typography variant="h4">En attente de joueurs</Typography>
+          {gameState.creator.id === user.id && (
+            <Button
+              onClick={handleStartGame}
+              variant="contained"
+              color="success"
+              disabled={
+                gameState.players.filter((player) => player.isActive).length ===
+                1
+              }
+            >
+              Lancer la partie
+            </Button>
+          )}
+        </Box>
       )}
 
-      {gameState.state === "playing" &&
-        gameState.currentPlayerId === user.id && (
-          <>
-            <Box>
-              <Button
-                onClick={() => handlePlaceDisc("flower")}
-                disabled={gameState.currentBet > 0 || !haveFlowers}
-              >
-                Place Flower
-              </Button>
-              <Button
-                onClick={() => handlePlaceDisc("skull")}
-                disabled={gameState.currentBet > 0 || !haveSkull}
-              >
-                Place Skull
-              </Button>
-            </Box>
-            <Box>
-              {renderBetButtons()}
-              <Button
-                onClick={() => handlePassBet()}
-                disabled={gameState.currentBet == 0 || playerCanReveal}
-              >
-                Pass Bet
-              </Button>
-            </Box>
-          </>
+      {gameState.state === "paused" && (
+        <Box
+          sx={{
+            position: "absolute",
+            width: "98%",
+            height: "85%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: "16px",
+            color: "white",
+          }}
+        >
+          <Typography variant="h4">Jeu mis en pause</Typography>
+          {gameState.creator.id === user.id && (
+            <Button
+              onClick={handleResumeGame}
+              variant="contained"
+              color="success"
+              disabled={gameState.players.some((player) => !player.isActive)}
+            >
+              Reprendre la partie
+            </Button>
+          )}
+        </Box>
+      )}
+
+      {gameState.state === "finished" && (
+        <Box
+          sx={{
+            position: "absolute",
+            width: "98%",
+            height: "85%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: "16px",
+            color: "white",
+          }}
+        >
+          <Typography variant="h4">Partie terminée</Typography>
+          <Button
+            onClick={() => navigate("/game/list")}
+            variant="contained"
+            color="success"
+          >
+            Revenir au menu
+          </Button>
+        </Box>
+      )}
+
+      {["playing", "endRound", "finished"].includes(gameState.state) &&
+        gameState.currentPlayerId && (
+          <PlayerInfoBox>
+            {gameState.currentBet === 0 && (
+              <Chip
+                label="Pas de parie en cours"
+                color="success"
+                sx={{ mb: 1 }}
+              />
+            )}
+            {gameState.currentBet > 0 && (
+              <Chip
+                label={gameState.currentBet + " fleurs pariées"}
+                color="warning"
+                sx={{ mb: 1 }}
+              />
+            )}
+            <Typography variant="h6">Joueur en cours :</Typography>
+            <Typography variant="subtitle1">
+              {
+                gameState.players.find(
+                  (player) => player.id === gameState.currentPlayerId
+                )!.username
+              }
+            </Typography>
+            {gameState.currentPlayerId === user.id && (
+              <Box mt={2}>
+                <Typography variant="h6">Lancer un parie :</Typography>
+                {renderBetButtons()}
+                <Button
+                  onClick={() => handlePassBet()}
+                  disabled={gameState.currentBet == 0 || playerCanReveal}
+                  color="error"
+                  variant="contained"
+                  size="small"
+                  sx={{ mt: 1 }}
+                >
+                  Ne pas parier
+                </Button>
+              </Box>
+            )}
+            {gameState.state === "endRound" && (
+              <Box mt={2}>
+                <Typography variant="h6">Manche terminée</Typography>
+                <Button
+                  onClick={() => handleResetRound()}
+                  disabled={
+                    gameState.players.find((player) => player.id === user.id)!
+                      .resetRound
+                  }
+                  color="success"
+                  variant="contained"
+                  size="small"
+                  sx={{ mt: 1 }}
+                >
+                  {gameState.players.find((player) => player.id === user.id)!
+                    .resetRound
+                    ? `${gameState.playersResetRound} joueur(s) sur ${gameState.players.length}`
+                    : "Finir la manche"}
+                </Button>
+              </Box>
+            )}
+          </PlayerInfoBox>
         )}
 
-      {gameState.state === "playing" && (
-        <Box>
+      {["playing", "paused", "endRound", "finished"].includes(
+        gameState.state
+      ) && (
+        <Box display="flex" flexDirection="column" gap={2} ml={1}>
           {gameState.players.map((player) => (
-            <Box key={player.id + "disk"}>
-              <Typography>{player.username}</Typography>
-              {player.discs.some((disc) => disc.position) ? (
-                player.discs.map(
+            <Box key={player.id + "playerBase"}>
+              <Typography variant="h6">
+                {player.username}
+                <Chip
+                  label={player.score + " points"}
+                  color="success"
+                  size="small"
+                  sx={{ ml: 1 }}
+                />
+                <Chip
+                  label={player.discs.length + " disques"}
+                  color="primary"
+                  size="small"
+                  sx={{ ml: 1 }}
+                />
+                {!player.isActive && (
+                  <Chip
+                    label="Joueur absent"
+                    color="error"
+                    size="small"
+                    sx={{ ml: 1 }}
+                  />
+                )}
+              </Typography>
+              <Box display="flex" gap={2} position="relative">
+                <DiscImage type="base" position={player.order} />
+                {player.discs.map(
                   (disc, index) =>
                     disc.position && (
-                      <Button
-                        key={disc.id}
-                        onClick={() => handleRevealDisc(disc.id)}
-                        disabled={
-                          !disc.canReveal ||
-                          !playerCanReveal ||
-                          gameState.currentPlayerId !== user.id ||
-                          (!gameState.canRevealOtherDisc &&
-                            gameState.currentPlayerId !== player.id)
-                        }
-                      >
-                        {disc.isRevealed
-                          ? disc.type
-                          : `Reveal Disc ${index + 1}`}
-                      </Button>
+                      <>
+                        {disc.isRevealed ? (
+                          <DiscImage
+                            type={disc.type}
+                            position={player.order}
+                            key={index + player.id + "disc-revealed"}
+                          />
+                        ) : (
+                          <DiscImage
+                            key={index + player.id + "disc-hidden"}
+                            type="back"
+                            position={player.order}
+                            onClick={() => handleRevealDisc(disc.id)}
+                            disabled={
+                              !disc.canReveal ||
+                              !playerCanReveal ||
+                              gameState.currentPlayerId !== user.id ||
+                              (!gameState.canRevealOtherDisc &&
+                                gameState.currentPlayerId !== player.id)
+                            }
+                          />
+                        )}
+                      </>
                     )
-                )
-              ) : (
-                <Typography>No disc placed</Typography>
-              )}
+                )}
+              </Box>
             </Box>
           ))}
         </Box>
+      )}
+
+      {["playing", "endRound"].includes(gameState.state) && currentPlayer && (
+        <HandArea>
+          {currentPlayer.discs.map(
+            (disc) =>
+              disc.position === null && (
+                <Box
+                  key={disc.id}
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="center"
+                  gap={2}
+                >
+                  <DiscImage
+                    type={disc.type}
+                    position={currentPlayer.order}
+                    disabled={gameState.currentPlayerId !== user.id}
+                    onClick={() => handlePlaceDisc(disc.type)}
+                  />
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="success"
+                    onClick={() => handlePlaceDisc(disc.type)}
+                    disabled={gameState.currentPlayerId !== user.id}
+                  >
+                    Jouer la carte
+                  </Button>
+                </Box>
+              )
+          )}
+        </HandArea>
       )}
 
       {gameState.state === "paused" && gameState.creator.id === user.id && (
@@ -257,7 +457,7 @@ const Game: React.FC = () => {
           </Button>
           {gameState.players.map((player) => (
             <Button
-              key={player.id}
+              key={player.id + "playersListPaused"}
               onClick={() => handleRemovePlayer(player.id)}
               disabled={player.id === user.id}
             >
@@ -266,22 +466,6 @@ const Game: React.FC = () => {
           ))}
         </>
       )}
-
-      {gameState.state === "finished" && (
-        <>
-          <Typography>Partie terminée !</Typography>
-          <Link to={"/game/list"}>Retourner à la liste des parties</Link>
-        </>
-      )}
-
-      <Typography variant="h5">Players:</Typography>
-      {gameState.players.map((player) => (
-        <Typography key={player.id}>
-          {player.username} - Score: {player.score} -{" "}
-          {player.isActive ? "Active" : "Inactive"} ({player.discs.length}{" "}
-          disques)
-        </Typography>
-      ))}
     </Box>
   );
 };

@@ -9,7 +9,13 @@ const Game = sequelize.define("game", {
     defaultValue: DataTypes.UUIDV4,
   },
   state: {
-    type: DataTypes.ENUM("pending", "playing", "finished", "paused"),
+    type: DataTypes.ENUM(
+      "pending",
+      "playing",
+      "finished",
+      "paused",
+      "endRound"
+    ),
     allowNull: false,
     defaultValue: "pending",
   },
@@ -79,6 +85,11 @@ const GamePlayers = sequelize.define("game_players", {
     defaultValue: false,
   },
   eliminated: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  resetRound: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,

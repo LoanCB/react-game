@@ -97,6 +97,19 @@ const socketHandler = (app) => {
         }
       });
 
+      // Reset
+      socket.on("resetRound", async ({ gameId, userId }) => {
+        try {
+          await gameLogic.resetRound(gameId, userId);
+
+          const gameState = await gameLogic.getGameState(gameId);
+          app.io.to(gameId).emit("gameStateUpdate", gameState);
+        } catch (error) {
+          console.error(error);
+          socket.emit("error", error.message);
+        }
+      });
+
       // Chat message
       socket.on("sendMessage", ({ gameId, userId, message }) => {
         app.io.to(gameId).emit("message", { userId, message });
