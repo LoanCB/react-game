@@ -25,14 +25,23 @@ const Register = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...rest } = values;
     try {
-      await register(rest);
-      dispatch(
-        openSnackBar({
-          message: t("auth:register.success"),
-          severity: "success",
-        })
-      );
-      navigate("/login");
+      const response = await register(rest);
+      if (response.error) {
+        dispatch(
+          openSnackBar({
+            message: t("auth:register.error"),
+            severity: "error",
+          })
+        );
+      } else {
+        dispatch(
+          openSnackBar({
+            message: t("auth:register.success"),
+            severity: "success",
+          })
+        );
+        navigate("/login");
+      }
     } catch {
       dispatch(
         openSnackBar({ message: t("auth:register.error"), severity: "error" })
@@ -41,8 +50,8 @@ const Register = () => {
   };
 
   const initialValues: RegisterValues = {
-    firstname: "",
-    lastname: "",
+    firstName: "",
+    lastName: "",
     username: "",
     email: "",
     password: "",
@@ -71,7 +80,7 @@ const Register = () => {
         <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1 }}>
           <KTextField
             formik={formik}
-            name="firstname"
+            name="firstName"
             label="Prénom"
             props={{
               fullWidth: true,
@@ -81,7 +90,7 @@ const Register = () => {
           />
           <KTextField
             formik={formik}
-            name="lastname"
+            name="lastName"
             label="Nom"
             props={{
               fullWidth: true,

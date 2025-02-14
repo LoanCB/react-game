@@ -7,9 +7,11 @@ import {
 } from "@mui/material";
 import { useLoginMutation } from "@src/store/auth-api";
 import { useAppDispatch } from "@src/store/hooks";
+import useLocalStorage from "@src/store/local-storage";
 import { openSnackBar } from "@src/store/notificationSlice";
 import { setUser } from "@src/store/userSlice";
 import ApiError from "@src/types/common/api-error";
+import { User } from "@src/types/user/user";
 import { useFormik } from "formik";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -21,6 +23,8 @@ const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
+  const [_user, setLocalUser] = useLocalStorage<User | null>("user");
+
   const initialValues: LoginValues = {
     email: "",
     password: "",
@@ -28,6 +32,7 @@ const Login = () => {
   const [login, { isLoading }] = useLoginMutation();
 
   const handleFormSubmit = async (values: LoginValues) => {
+    setLocalUser(null);
     const { data, error } = await login(values);
     if (error) {
       const errorObject = error as ApiError;
@@ -41,6 +46,11 @@ const Login = () => {
       );
     } else if (data) {
       dispatch(setUser({ ...data.user, token: data.token }));
+      setLocalUser({ ...data.user, token: data.token });
+
+      // Attendre que l'événement storage se déclenche
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       navigate("/");
     }
   };

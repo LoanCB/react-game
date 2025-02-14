@@ -6,8 +6,8 @@ import NotFound from "@src/components/Not-found";
 import Login from "@src/features/auth/components/Login";
 import Register from "@src/features/auth/components/Register";
 import Verify from "@src/features/auth/components/Verify";
-import CreateGame from "@src/features/game/components/Create";
 import Game from "@src/features/game/components/Game";
+import ListGame from "@src/features/game/components/ListGame";
 import { createBrowserRouter } from "react-router-dom";
 
 const router = createBrowserRouter([
@@ -29,8 +29,8 @@ const router = createBrowserRouter([
             element: <Game />,
           },
           {
-            path: "/game/create",
-            element: <CreateGame />,
+            path: "/game/list",
+            element: <ListGame />,
           },
         ],
       },

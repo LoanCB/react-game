@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import Logo from "@src/assets/love_letters_logo.jpeg";
+import Logo from "@src/assets/logo.webp";
 import { Outlet } from "react-router-dom";
 import Notification from "../common/notification";
 

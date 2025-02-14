@@ -33,7 +33,13 @@ export function usersRoutes(app, blacklistedTokens) {
 
   //inscription
   app.post("/register", async (request, reply) => {
-    reply.send(await registerUser(request.body, app.bcrypt));
+    const response = await registerUser(request.body, app.bcrypt);
+
+    if (response.error) {
+      reply
+        .status(response.status)
+        .send({ error: response.error, errorCode: response.errorCode });
+    }
   });
 
   app.post("/verify", async (request, reply) => {

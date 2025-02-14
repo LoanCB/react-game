@@ -4,8 +4,17 @@
     "titleBar.activeBackground": "#35442F",
     "titleBar.activeForeground": "#FAFBFA"
   },
-  "cSpell.words": ["appbar", "fontsource", "formik", "Formik", "persistor"],
+  "cSpell.words": [
+    "appbar",
+    "fastify",
+    "Fastify",
+    "fontsource",
+    "formik",
+    "Formik",
+    "persistor"
+  ],
   "editor.codeActionsOnSave": {
     "source.organizeImports": "always"
-  }
+  },
+  "i18n-ally.localesPaths": ["frontend/locales"]
 }
