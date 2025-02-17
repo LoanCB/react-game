@@ -95,7 +95,7 @@ export async function registerUser(userDatas, bcrypt) {
   // Send mail
   try {
     const sender = new Sender(
-      "no-reply@trial-ynrw7gy7qxkg2k8e.mlsender.net",
+      process.env.MAIL_SENDER,
       "Loan Courchinoux-Billonnet"
     );
     const recipients = [new Recipient(email, `${firstName} ${lastName}`)];

@@ -22,7 +22,9 @@ try {
   console.error("Impossible de se connecter, erreur suivante :", error);
 }
 
-const CHECK_INTERVAL = process.env.CHECK_GAMES || 10000;
+const IS_PROD = process.env.NODE_ENV === "prod";
+const PROD_URL = process.env.PROD_URL;
+const PORT = process.env.PORT;
 
 /**
  * API
@@ -74,7 +76,7 @@ await app
     transformSpecificationClone: true,
   })
   .register(fastifyJWT, {
-    secret: "unanneaupourlesgouvernertous",
+    secret: process.env.SECRET_KEY,
   })
   .register(socketioServer, {
     cors: {
@@ -85,8 +87,12 @@ await app
 /**********
  * Routes
  **********/
-app.get("/", (request, reply) => {
-  reply.send({ documentationURL: "http://localhost:3000/documentation" });
+app.get("/", (_request, reply) => {
+  reply.send({
+    documentationURL: IS_PROD
+      ? PROD_URL + "/documentation"
+      : `http://localhost:${PORT}/documentation`,
+  });
 });
 // Fonction pour décoder et vérifier le token
 app.decorate("authenticate", async (request, reply) => {
@@ -125,17 +131,20 @@ const start = async () => {
           error
         );
       });
-    await app.listen({ port: 3000 });
+    await app.listen({ port: PORT, host: IS_PROD ? "0.0.0.0" : "127.0.0.1" });
     console.log(
-      "Serveur Fastify lancé sur " + chalk.blue("http://localhost:3000")
+      "Serveur Fastify lancé sur " +
+        chalk.blue(
+          IS_PROD ? `https://0.0.0.0:${IS_PROD}` : `http://localhost:${IS_PROD}`
+        )
     );
     console.log(
       chalk.bgYellow(
-        "Accéder à la documentation sur http://localhost:3000/documentation"
+        `Accéder à la documentation sur ${
+          IS_PROD ? PROD_URL : `http://localhost:${PORT}`
+        }/documentation`
       )
     );
-
-    // setInterval(() => checkGames(app), CHECK_INTERVAL);
   } catch (err) {
     console.log(err);
     process.exit(1);
