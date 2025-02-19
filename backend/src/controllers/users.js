@@ -1,4 +1,4 @@
-import { EmailParams, MailerSend, Recipient, Sender } from "mailersend";
+import { createTransport } from "nodemailer";
 import { Op } from "sequelize";
 import User from "../models/users.js";
 
@@ -11,6 +11,16 @@ async function generateID(id) {
   }
   return id;
 }
+
+const transporter = createTransport({
+  host: process.env.MAIL_HOST,
+  port: process.env.MAIL_PORT,
+  secure: process.env.MAIL_PORT === "465",
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASSWORD,
+  },
+});
 
 const mailerSend = new MailerSend({
   apiKey: process.env.MAIL_TOKEN,
@@ -94,19 +104,17 @@ export async function registerUser(userDatas, bcrypt) {
 
   // Send mail
   try {
-    const sender = new Sender(
-      process.env.MAIL_SENDER,
-      "Loan Courchinoux-Billonnet"
-    );
-    const recipients = [new Recipient(email, `${firstName} ${lastName}`)];
     const url = `${process.env.APP_FRONT_URL}/verify?email=${email}&id=${id}`;
-    const html = `<a href="${url}" target="_blank">Activer mon compte</a>`;
-    const params = new EmailParams()
-      .setFrom(sender)
-      .setTo(recipients)
-      .setSubject("Confirmation d'inscription")
-      .setHtml(html);
-    await mailerSend.email.send(params);
+    const mailInfo = await transporter.sendMail({
+      from: `"Skull Game" <${process.env.MAIL_USER}>`,
+      to: email,
+      subject: "Validation du compte Skull",
+      html: `<a href="${url}" target="_blank">Activer mon compte</a>`,
+    });
+
+    console.log(`Email sent : ${mailInfo.messageId}`);
+
+    return await User.create(user);
   } catch (error) {
     console.log(error);
     return {
@@ -115,8 +123,6 @@ export async function registerUser(userDatas, bcrypt) {
       status: 500,
     };
   }
-
-  return await User.create(user);
 }
 
 export async function verifyUser(userDatas) {
