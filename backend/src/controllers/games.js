@@ -68,12 +68,12 @@ export async function updateGame(request) {
     return { error: "La partie n'existe pas." };
   }
 
-  if (game.dataValues.state === GameState.FINISHED) {
+  if (game.dataValues.state === "finished") {
     return { error: "Cette partie est déjà terminée !" };
   }
 
   switch (action) {
-    case "join":
+    case "join": {
       const playerCount = game.players.length;
       if (playerCount >= 6) {
         return {
@@ -81,7 +81,7 @@ export async function updateGame(request) {
             "Le nombre maximum de joueurs (6) est atteint pour cette partie !",
         };
       }
-      if (game.dataValues.state != GameState.PENDING) {
+      if (game.dataValues.state != "pending") {
         return { error: "Cette partie n'est plus en attente." };
       }
 
@@ -94,6 +94,7 @@ export async function updateGame(request) {
         order: playerCount + 1,
       });
       break;
+    }
     case "start":
       if (game.players.length < 2) {
         return {
@@ -101,11 +102,11 @@ export async function updateGame(request) {
         };
       }
 
-      game.state = GameState.PLAYING;
+      game.state = "playing";
 
       break;
     case "finish":
-      game.state = GameState.FINISHED;
+      game.state = "finished";
       if (!request.body.score) {
         return { error: "Le score est manquant." };
       }

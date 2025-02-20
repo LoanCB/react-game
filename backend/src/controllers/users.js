@@ -1,4 +1,5 @@
 import { createTransport } from "nodemailer";
+import process from "process";
 import { Op } from "sequelize";
 import User from "../models/users.js";
 
@@ -20,10 +21,6 @@ const transporter = createTransport({
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASSWORD,
   },
-});
-
-const mailerSend = new MailerSend({
-  apiKey: process.env.MAIL_TOKEN,
 });
 
 export async function getUsers() {

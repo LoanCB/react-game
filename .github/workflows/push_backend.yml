@@ -1,0 +1,49 @@
+name: Push verifications
+on:
+  - push
+defaults:
+  run:
+    working-directory: ./backend
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-22.04
+    env:
+      IMAGE_NAME: "skull-api"
+    steps:
+      - name: Checkout on branch
+        uses: actions/checkout@v4
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./backend/Dockerfile
+
+      - name: Build project image
+        run: docker image build --tag="${IMAGE_NAME}" ./
+
+      - name: Lint project
+        run: |
+          docker container run "${IMAGE_NAME}" npm run lint
+
+      - name: Login to Docker Hub
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master'
+        uses: docker/login-action@v3
+        with:
+          username: loancb
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push release image to docker hub
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: ./
+          tags: "loancb/skull-api:${{ github.ref_name }}"
+
+      - name: Push unstable release to docker hub
+        if: github.ref == 'refs/heads/master'
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: ./
+          tags: "loancb/skull-api:unstable"
