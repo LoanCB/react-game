@@ -11,6 +11,7 @@ import { gamesRoutes } from "./routes/games.js";
 import { usersRoutes } from "./routes/users.js";
 //bdd
 import socketioServer from "fastify-socket.io";
+import process from "process";
 import { sequelize } from "./bdd.js";
 import socketHandler from "./socket.js";
 

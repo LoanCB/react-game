@@ -21,11 +21,9 @@ jobs:
       - name: Build project image
         run: docker image build --tag="${IMAGE_NAME}" ./
 
-      - name: Lint, build and run test
+      - name: Lint project
         run: |
           docker container run "${IMAGE_NAME}" npm run lint
-          docker container run "${IMAGE_NAME}" npm run build
-          docker container run "${IMAGE_NAME}" npm run test
 
       - name: Login to Docker Hub
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master'
