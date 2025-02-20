@@ -37,7 +37,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: ./
+          context: ./backend
           tags: "loancb/skull-api:${{ github.ref_name }}"
 
       - name: Push unstable release to docker hub
@@ -45,5 +45,5 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: ./
+          context: ./backend
           tags: "loancb/skull-api:unstable"
