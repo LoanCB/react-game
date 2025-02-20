@@ -136,7 +136,7 @@ const start = async () => {
     console.log(
       "Serveur Fastify lancé sur " +
         chalk.blue(
-          IS_PROD ? `https://0.0.0.0:${IS_PROD}` : `http://localhost:${IS_PROD}`
+          IS_PROD ? `https://0.0.0.0:${PORT}` : `http://localhost:${PORT}`
         )
     );
     console.log(
