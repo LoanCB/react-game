@@ -6,3 +6,8 @@ COPY eslint.config.js /app/
 
 RUN npm clean-install
 COPY ./src /app/src/
+
+ENV PORT=$PORT
+EXPOSE $PORT
+
+CMD ["node", "src/server.js"]
