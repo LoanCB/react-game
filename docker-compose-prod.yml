@@ -1,0 +1,16 @@
+services:
+  skull-api:
+    image: loancb/skull-api:unstable
+    env_file:
+      - .env-back
+    ports:
+      - "${PORT}:${PORT}"
+    network_mode: "host"
+
+  skull-web:
+    image: loancb/skull-web:unstable
+    env_file:
+      - .env-front
+    ports:
+      - "${PORT}:${PORT}"
+    network_mode: "host"

@@ -21,20 +21,11 @@ School project to learn websocket and React
 
 ## Production
 
-### Backend
+Using docker-compose-prod.yml
 
-Using docker and docker image generate by github actions
-example of docker-compose.yml :
-```
-services:
-  skull-api:
-    image: loancb/skull-api:unstable
-    env_file:
-      - .env
-    ports:
-      - "${PORT}:${PORT}"
-    network_mode: "host"
-```
+Use unstable tag per default. It's recommended to replace it by a specified tag. You can show list of tags just here :
 
-### Frontend
-Using Vercel
+- [frontend](https://hub.docker.com/repository/docker/loancb/skull-web/general)
+- [backend](https://hub.docker.com/repository/docker/loancb/skull-api/general)
+
+PS : Both use the same tags
