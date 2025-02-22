@@ -6,11 +6,14 @@
   },
   "cSpell.words": [
     "appbar",
+    "DOCKERHUB",
     "fastify",
     "Fastify",
     "fontsource",
     "formik",
     "Formik",
+    "github",
+    "loancb",
     "persistor"
   ],
   "editor.codeActionsOnSave": {
