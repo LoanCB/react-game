@@ -16,4 +16,4 @@ COPY --from=build /app/dist ./dist
 ENV PORT=$PORT
 EXPOSE $PORT
 
-CMD ["serve", "-s", "dist", "-l", "$PORT"]
+CMD ["sh", "-c", "serve -s dist -l $PORT"]
