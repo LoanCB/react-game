@@ -37,9 +37,9 @@ export default ({ mode }: { mode: string }) => {
       },
     },
     server: {
-      host: process.env.NODE_ENV === "prod" ? "0.0.0.0" : "127.0.0.1",
-      port: parseInt(process.env.PORT || "5173"),
-      strictPort: process.env.NODE_ENV === "prod",
+      host: process.env.VITE_NODE_ENV === "prod" ? "0.0.0.0" : "127.0.0.1",
+      port: parseInt(process.env.VITE_PORT || "5173"),
+      strictPort: process.env.VITE_NODE_ENV === "prod",
     },
   });
 };

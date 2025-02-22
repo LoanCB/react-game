@@ -13,7 +13,7 @@ WORKDIR /app
 RUN npm install -g serve@14.2.4
 COPY --from=build /app/dist ./dist
 
-ENV PORT=$PORT
-EXPOSE $PORT
+ENV VITE_PORT=$VITE_PORT
+EXPOSE $VITE_PORT
 
-CMD ["sh", "-c", "serve -s dist -l $PORT"]
+CMD ["sh", "-c", "serve -s dist -l $VITE_PORT"]
