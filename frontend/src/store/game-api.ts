@@ -1,4 +1,4 @@
-import { GameStats, IGame } from "./../types/game/game";
+import { GameStats, IGame } from "../types/game/game";
 import { api } from "./api";
 
 export const gameApi = api.injectEndpoints({
