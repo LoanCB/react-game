@@ -1,10 +1,10 @@
 FROM node:22 AS build
 WORKDIR /app
 
-COPY package*.json /app/
+COPY package*.json .
 
 RUN npm clean-install
-COPY . /app/
+COPY . .
 RUN npm run build
 
 FROM node:22-alpine
