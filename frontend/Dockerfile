@@ -16,4 +16,5 @@ COPY --from=build /app/dist ./dist
 ENV VITE_PORT=$VITE_PORT
 EXPOSE $VITE_PORT
 
-CMD ["sh", "-c", "'serve -s dist -p $VITE_PORT'"]
+ENTRYPOINT ["sh", "-c"]
+CMD ["serve -s dist -p $VITE_PORT"]
