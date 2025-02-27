@@ -1,9 +1,9 @@
-import { LoginCredentials, LoginToken } from "./../types/auth/login";
+import { LoginCredentials, LoginToken } from "../types/auth/login";
 import {
   CreatedUser,
   RegisterCredentials,
   VerifyCredentials,
-} from "./../types/auth/register";
+} from "../types/auth/register";
 import { api } from "./api";
 
 export const authApi = api.injectEndpoints({

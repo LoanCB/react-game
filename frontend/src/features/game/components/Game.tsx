@@ -429,7 +429,10 @@ const Game: React.FC = () => {
                   <DiscImage
                     type={disc.type}
                     position={currentPlayer.order}
-                    disabled={gameState.currentPlayerId !== user.id}
+                    disabled={
+                      gameState.currentPlayerId !== user.id ||
+                      gameState.currentBet > 0
+                    }
                     onClick={() => handlePlaceDisc(disc.type)}
                   />
                   <Button
@@ -437,7 +440,10 @@ const Game: React.FC = () => {
                     size="small"
                     color="success"
                     onClick={() => handlePlaceDisc(disc.type)}
-                    disabled={gameState.currentPlayerId !== user.id}
+                    disabled={
+                      gameState.currentPlayerId !== user.id ||
+                      gameState.currentBet > 0
+                    }
                   >
                     Jouer la carte
                   </Button>

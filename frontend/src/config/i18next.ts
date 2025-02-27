@@ -20,6 +20,9 @@ i18next
     ns: ["common", "auth", "game"],
     defaultNS: "common",
     fallbackNS: "common",
+    backend: {
+      loadPath: "/locales/{{lng}}/{{ns}}.json",
+    },
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },
